@@ -1,0 +1,12 @@
+[submodule "arxiv-research-assistant"]
+	path = arxiv-research-assistant
+	url = https://github.com/Kodok-Tuan-Rumah/arxiv-research-assistant.git
+[submodule "mcp-gateway"]
+	path = mcp-gateway
+	url = https://github.com/Kodok-Tuan-Rumah/mcp-gateway.git
+[submodule "rag-research"]
+	path = rag-research
+	url = https://github.com/Kodok-Tuan-Rumah/rag-research.git
+[submodule "llm-eval-framework"]
+	path = llm-eval-framework
+	url = https://github.com/Kodok-Tuan-Rumah/llm-eval-framework.git
