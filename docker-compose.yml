@@ -30,16 +30,16 @@ services:
     image: postgres:16-alpine
     container_name: ws-postgres
     environment:
-      POSTGRES_USER: arxiv
-      POSTGRES_PASSWORD: arxiv_secret
-      POSTGRES_DB: arxiv_db
+      POSTGRES_USER: ${POSTGRES_USER:-arxiv}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-arxiv_secret}
+      POSTGRES_DB: ${POSTGRES_DB:-arxiv_db}
     ports:
       - "5432:5432"
     volumes:
       - ws-postgres_data:/var/lib/postgresql/data
       - ./arxiv-research-assistant/infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U arxiv -d arxiv_db"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-arxiv} -d ${POSTGRES_DB:-arxiv_db}"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -145,20 +145,20 @@ services:
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: arxiv
-      DB_PASSWORD: arxiv_secret
-      DB_NAME: arxiv_db
-      QDRANT_URL: http://qdrant:6333
-      OLLAMA_HOST: http://ollama:11434
+      DB_USER: ${POSTGRES_USER:-arxiv}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-arxiv_secret}
+      DB_NAME: ${POSTGRES_DB:-arxiv_db}
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      OLLAMA_HOST: ${OLLAMA_HOST:-http://ollama:11434}
       # Host RAM (~15GB) tanpa swap: load phi3:mini (~4.5GB peak) OOM ketika
       # desktop GUI ikut berjalan. Rute Groq dipakai sebagai seksi utama
       # (kunci valid, ~2-5s); phi3 tetap tersedia untuk demo lokal ketika
-      # host memori longgar — kembalikan ke "ollama" bila ingin lokal.
-      LLM_PROVIDER: groq
+      # host memori longgar — set LLM_PROVIDER=ollama di .env untuk rute lokal.
+      LLM_PROVIDER: ${LLM_PROVIDER:-groq}
       # The full MiniLM snapshot (shared with rag-research) is mounted read-only,
       # so the embedder never needs outbound DNS.
       HF_HUB_OFFLINE: "1"
-      GROQ_MODEL: openai/gpt-oss-20b
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
     volumes:
       - ./rag-research/hf-cache/hub:/root/.cache/huggingface/hub:ro
@@ -191,11 +191,11 @@ services:
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
-      DB_USER: arxiv
-      DB_PASSWORD: arxiv_secret
-      DB_NAME: arxiv_db
-      ML_SERVICE_URL: http://arxiv-python-ml:8001
-      QDRANT_URL: http://qdrant:6333
+      DB_USER: ${POSTGRES_USER:-arxiv}
+      DB_PASSWORD: ${POSTGRES_PASSWORD:-arxiv_secret}
+      DB_NAME: ${POSTGRES_DB:-arxiv_db}
+      ML_SERVICE_URL: ${ML_SERVICE_URL:-http://arxiv-python-ml:8001}
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
     depends_on:
       postgres:
         condition: service_healthy
@@ -225,7 +225,7 @@ services:
       - ./llm-eval-framework/reports:/app/reports
       - ./llm-eval-framework/logs:/app/logs
     environment:
-      OLLAMA_HOST: http://ollama:11434
+      OLLAMA_HOST: ${OLLAMA_HOST:-http://ollama:11434}
     depends_on:
       ollama:
         condition: service_healthy
@@ -249,13 +249,13 @@ services:
     ports:
       - "8090:8090"
     environment:
-      POSTGRES_DSN: host=ws-postgres port=5432 user=arxiv password=arxiv_secret dbname=arxiv_db sslmode=disable
-      GROQ_MODEL: openai/gpt-oss-20b
+      POSTGRES_DSN: host=ws-postgres port=5432 user=${POSTGRES_USER:-arxiv} password=${POSTGRES_PASSWORD:-arxiv_secret} dbname=${POSTGRES_DB:-arxiv_db} sslmode=disable
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
-      ARXIV_SERVICE_URL: http://arxiv-go-backend:8080
-      EVAL_SERVICE_URL: http://llm-eval-framework:8002
-      RAG_SERVICE_URL: http://rag-api:8000
-      GATEWAY_LISTEN_ADDRESS: :8090
+      ARXIV_SERVICE_URL: ${ARXIV_SERVICE_URL:-http://arxiv-go-backend:8080}
+      EVAL_SERVICE_URL: ${EVAL_SERVICE_URL:-http://llm-eval-framework:8002}
+      RAG_SERVICE_URL: ${RAG_SERVICE_URL:-http://rag-api:8000}
+      GATEWAY_LISTEN_ADDRESS: ${GATEWAY_LISTEN_ADDRESS:-:8090}
     depends_on:
       arxiv-go-backend:
         condition: service_healthy
@@ -282,11 +282,11 @@ services:
     ports:
       - "8000:8000"
     environment:
-      API_HOST: 0.0.0.0
-      API_PORT: 8000
-      QDRANT_URL: http://qdrant:6333
-      OLLAMA_HOST: http://ollama:11434
-      GROQ_MODEL: openai/gpt-oss-20b
+      API_HOST: ${API_HOST:-0.0.0.0}
+      API_PORT: ${API_PORT:-8000}
+      QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
+      OLLAMA_HOST: ${OLLAMA_HOST:-http://ollama:11434}
+      GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
     depends_on:
       qdrant:
