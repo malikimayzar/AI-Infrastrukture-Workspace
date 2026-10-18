@@ -99,3 +99,37 @@ docker run --rm --entrypoint python <img> -c "import pydantic_settings, rank_bm2
 7. smoke-e2e keras di "ingest ulang paper" → tolerans/idempotent + retry 2x.
 
 Semuanya ter-regresi di: `go test -race ./...` (mcp-gateway 8 paket OK), `make smoke-e2e` PASSED, `make check-secrets` CLEAN.
+
+---
+
+## Scenario-6: CI GitHub Actions "0 run" selama 2 hari — gerbang approval FORK
+
+**Gejala**
+- `gh run list` kosong dan `actions/runs → total_count = 0` di keempat repo, padahal workflow terdaftar **active** (`gh workflow list --all`), file workflow ada di remote, dan push sukses.
+- `actions_enabled = true` untuk semua repo; `PushEvent` TERCATAT di API events (mis. arxiv `2026-10-18T16:57:10Z`) tetapi tidak ada run yang dibuat.
+
+**Akar**
+- Keempat repo adalah **fork** (ForkEvent 2026-10-16). Untuk fork, workflow **tidak berjalan otomatis (push/PR) sampai pemilik meng-klik "I understand my workflows, go ahead and enable them"** di tab Actions repo tersebut.
+- Sebelum approval: run otomatis TIDAK dibuat, tetapi `workflow_dispatch` manual **tetap jalan** — terkonfirmasi: dispatch llm-eval/arxiv/rag langsung memproduksi run hijau, sementara push ke repo yang sama tidak menghasilkan apa-apa.
+- mcp-gateway adalah satu-satunya yang sudah di-enable pemilik (saat pengecekan banner sebelumnya) → hanya push-trigger mcp yang hidup.
+
+**Diagnosis**
+```bash
+gh run list --repo <owner>/<repo> --limit 3        # kosong?
+gh api repos/<owner>/<repo>/events --jq '.[].type' # PushEvent ada → event diterima, run tidak dibuat
+gh workflow list --repo <owner>/<repo> --all       # active (bukan disabled_manually)
+```
+
+**Obat (satu klik per repo + kode)**
+1. Actions tab → `arxiv-research-assistant`, `rag-research`, `llm-eval-framework` → klik **"I understand my workflows, go ahead and enable them"** (mcp-gateway sudah).
+2. Sisi kode: `workflow_dispatch:` ditambahkan ke semua workflow (kanal darurat), job `secrets-scan` (grep `gsk_[A-Za-z0-9]{30,}`), langkah pytest di llm-eval, dan **`gofmt -s`** 4 file mcp yang membuat Lint merah di run pertama (`cmd/server/stub_test.go`, `internal/config/config.go`, `internal/tools/research_rag_contract.go`, `internal/tools/research_rag_test.go`).
+3. Hardening searah P1: smoke Step 3b (kontrak `research_rag`: `decision ∈ {answer,abstain}`, `evaluation_status ∈ {skipped,unavailable,completed}`; uji negatif rag-mati → `502 backend_error/skipped`), README mcp memuat tabel makna `evaluation_status`.
+
+**Bukti (semua hijau)**
+- mcp-gateway `39148533651`: 4/4 job (Lint, Build & Test + postgres, Docker, Secrets) ✓
+- arxiv `39148331309`: 3/3 ✓ · rag `39148563073`: 5/5 (pytest 3.12+3.14, contracts ×2, secrets) ✓
+- llm-eval `39147548575`: 2/2 (pytest 199 tes) ✓
+
+**Preventif**
+- Setelah mem-fork repo: approve workflow di Actions tab SEBELUM mendebug "0 run"; `workflow_dispatch` = jalur verifikasi cepat.
+- Jangan menyimpulkan "CI rusak" dari `total_count=0` saja — bedakan: (a) gate fork, (b) `disabled_manually`, (c) file invalid, (d) filter branch di trigger.
