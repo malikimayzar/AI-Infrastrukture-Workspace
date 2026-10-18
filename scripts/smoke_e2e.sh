@@ -5,6 +5,7 @@
 #   1. Wait for all services to be healthy
 #   2. Ingest one arXiv paper (via arxiv-research-assistant)
 #   3. Query the paper via mcp-gateway (arxiv backend)
+#   3b. Query via mcp-gateway (research_rag backend) — kontrak lintas folder
 #   4. Verify response has answer + sources
 #   5. Verify query log exists in PostgreSQL
 #
@@ -113,6 +114,49 @@ fi
 
 log "Answer received from backend=$BACKEND (length: ${#ANSWER} chars)"
 
+# ── Step 3b: research_rag contract check ───────────────────────────────
+
+log "Step 3b: Querying via mcp-gateway (backend: research_rag)"
+
+# Kontrak yang divalidasi: HTTP 200, backend cocok, decision salah satu dari
+# answer|abstain (abstain adalah perilaku gate yang SAH — bukan kegagalan),
+# dan evaluation_status memuat nilai yang dikenal. Retry 2x karena rate limit
+# Groq bersifat transien (pola sama dengan Step 3).
+RAG_RESPONSE=""
+for attempt in 1 2; do
+  RAG_RESPONSE=$(curl -sf --max-time 120 -X POST "$GATEWAY_URL/ask" \
+    -H "Content-Type: application/json" \
+    -d '{"backend": "research_rag", "query": "How does RAG combine retrieval with generation?", "top_k": 3}' 2>&1) || RAG_RESPONSE=""
+  if [ -n "$RAG_RESPONSE" ]; then
+    break
+  fi
+  if [ "$attempt" -lt 2 ]; then
+    log "research_rag attempt $attempt failed (transient — provider rate limit); retrying in 15s..."
+    sleep 15
+  else
+    err "research_rag request failed after retries"
+  fi
+done
+
+RAG_BACKEND=$(echo "$RAG_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('backend',''))") \
+  || err "Failed to parse research_rag response"
+RAG_DECISION=$(echo "$RAG_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('decision',''))") \
+  || err "Failed to parse research_rag decision"
+RAG_EVAL=$(echo "$RAG_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('evaluation_status',''))") \
+  || err "Failed to parse research_rag evaluation_status"
+
+if [ "$RAG_BACKEND" != "research_rag" ]; then
+  err "Expected backend=research_rag, got $RAG_BACKEND"
+fi
+case "$RAG_DECISION" in
+  answer|abstain) log "research_rag: decision=$RAG_DECISION ✓" ;;
+  *) err "research_rag: unexpected decision '$RAG_DECISION'" ;;
+esac
+case "$RAG_EVAL" in
+  skipped|unavailable|completed) log "research_rag: evaluation_status=$RAG_EVAL ✓" ;;
+  *) err "research_rag: unknown evaluation_status '$RAG_EVAL'" ;;
+esac
+
 # ── Step 4: Verify query log in PostgreSQL ─────────────────────────────
 
 log "Step 4: Verifying query log in PostgreSQL"
@@ -144,5 +188,6 @@ log "=============================================="
 log "  Ingested:     $TEST_ARXIV_ID"
 log "  Query backend: $BACKEND"
 log "  Answer length: ${#ANSWER} chars"
+log "  RAG contract:  decision=$RAG_DECISION eval=$RAG_EVAL"
 log "  Query logs:    $LOG_COUNT row(s)"
 log "=============================================="
