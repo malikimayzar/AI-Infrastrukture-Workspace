@@ -2,7 +2,7 @@
 # scripts/check_secrets.sh — sweep rahasia yang bocor (kotak TODO P0 §4).
 #
 # Memeriksa, berurutan:
-#   A. Kunci literal yang diketahui kompromi (riwayat insiden workspace ini —
+#   A. Prefiks kunci yang diketahui kompromi (riwayat insiden workspace ini —
 #      keduanya pernah menyentuh working tree dan WAJIB dianggap terbakar).
 #   B. Pola kunci Groq generik `gsk_` + ≥30 alnum di SEMUA file yang di-track
 #      (root repo + 4 submodule — mereka adalah repos git terpisah).
@@ -18,12 +18,15 @@ set -uo pipefail
 leak=0
 repos=(. arxiv-research-assistant mcp-gateway rag-research llm-eval-framework)
 
-echo "── [A] Kunci literal yang diketahui kompromi"
+echo "── [A] Prefiks kunci yang diketahui kompromi (terpotong, bukan utuh)"
+# Dulu kedua kunci disimpan UTUH di sini — ironi "file pembersih berisi rahasia"
+# yang membuat scanner menandai dirinya sendiri. Sekarang cukup prefiks panjang
+# (~16 char, tidak bisa verifikasi/pakai); file ini dikecualikan dari pencarian.
 for k in \
-  gsk_Ud7hTCDlhDS26xXDJvxXWGdyb3FYZni7WkWsKLE8MhrCaUCy \
-  gsk_BGTGwh89Z2GesVqxLSi9WGdyb3FYZni7WkWsKLE8MhrCaUCy
+  gsk_Ud7hTCDlhDS26xX \
+  gsk_BGTGwh89Z2GesV
 do
-  hit=$(git grep -n "$k" -- . 2>/dev/null || true)
+  hit=$(git grep -n "$k" -- . ':(exclude)scripts/check_secrets.sh' 2>/dev/null || true)
   for r in "${repos[@]}"; do
     [ "$r" != "." ] || continue
     hit="$hit
@@ -41,12 +44,11 @@ echo "── [B] Pola generik gsk_<30+alnum> di file yang di-track"
 pat='gsk_[A-Za-z0-9]{30,}'
 for r in "${repos[@]}"; do
   if [ "$r" = "." ]; then
-    files=$(git ls-files -z)
+    found=$(git ls-files -z | xargs -0 -r grep -lE "$pat" -I 2>/dev/null || true)
   else
     [ -d "$r/.git" ] || continue
-    files=$(git -C "$r" ls-files -z)
+    found=$(git -C "$r" ls-files -z | xargs -0 -r grep -lE "$pat" -I 2>/dev/null || true)
   fi
-  found=$(printf '%s' "$files" | xargs -0 -r grep -lE "$pat" -I 2>/dev/null || true)
   if [ -n "$found" ]; then
     printf '%s\n' "$found" | while IFS= read -r f; do
       echo "   ❌ $r/$f"
