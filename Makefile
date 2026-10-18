@@ -1,4 +1,4 @@
-.PHONY: help up down test test-arxiv test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models
+.PHONY: help up down test test-arxiv test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models rotate-key check-secrets prune-builder df
 
 # Workspace root Makefile for the AI Infrastructure Platform
 #
@@ -67,10 +67,10 @@ test-rag:  ## Run rag-research tests
 install-ollama:  ## Install Ollama CLI (Linux x86_64)
 	curl -fsSL https://ollama.com/install.sh | sh
 
-pull-models:  ## Pull required Ollama models
-	ollama pull nomic-embed-text
-	ollama pull phi3:mini
-	ollama pull mistral
+pull-models:  ## Pull required Ollama models (inside the ws-ollama container, not the host)
+	$(COMPOSE) --env-file $(ENV_FILE) exec -T ollama ollama pull phi3:mini
+	$(COMPOSE) --env-file $(ENV_FILE) exec -T ollama ollama pull mistral
+	$(COMPOSE) --env-file $(ENV_FILE) exec -T ollama ollama pull nomic-embed-text
 
 # ──────────────────────────────────────────────────────────────────────
 # End-to-end smoke test
@@ -78,6 +78,24 @@ pull-models:  ## Pull required Ollama models
 
 smoke-e2e:  ## Run end-to-end smoke test (ingest → query → evaluate)
 	bash scripts/smoke_e2e.sh
+
+# ──────────────────────────────────────────────────────────────────────
+# Security (P0 pipeline)
+# ──────────────────────────────────────────────────────────────────────
+
+rotate-key:  ## KEY=gsk_... rotate Groq key: validate live → rewrite .env → recreate 3 services (add DRY=1 to validate only)
+	@bash scripts/rotate_key.sh KEY=$(KEY) DRY=$(DRY)
+
+check-secrets:  ## Sweep tracked files for leaked Groq keys (exit 1 on leak; safe for CI)
+	bash scripts/check_secrets.sh
+
+prune-builder:  ## Reclaim docker build cache (keep 3GB) — confirm with y/N
+	@echo "Build cache ≥18GB reclaimable — hapus (tahan 3GB)? [y/N]"; \
+	read -r ans; \
+	case "$$ans" in y|Y) docker builder prune --keep-storage 3GB -f;; *) echo "Batal.";; esac
+
+df:  ## Show docker disk usage
+	docker system df
 
 # ──────────────────────────────────────────────────────────────────────
 # Project sub-make (delegate to project Makefiles)

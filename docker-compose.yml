@@ -18,6 +18,11 @@
 # Prerequisites:
 #   cp .env.example .env   # then edit .env as needed
 
+# Rootless docker's UDP DNS is flaky on this host; force glibc to use TCP (use-vc).
+# Shared via anchors by every service that resolves external hosts.
+x-dns: &dns-map
+  dns: ["1.1.1.1", "8.8.8.8"]
+  dns_opt: ["use-vc"]
 services:
   # ───────────────────────── Shared infrastructure ─────────────────────────
 
@@ -50,7 +55,8 @@ services:
     volumes:
       - ws-qdrant_data:/qdrant/storage
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:6333/healthz"]
+      # qdrant/qdrant ships no curl/wget; probe the port with bash instead.
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/6333'"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -73,12 +79,19 @@ services:
   ollama:
     image: ollama/ollama:latest
     container_name: ws-ollama
+    <<: *dns-map
     ports:
-      - "11434:11434"
+      # Host 11434 is occupied by a host-side Ollama daemon; expose the container on 11435.
+      # In-stack services still use http://ollama:11434 (the compose network alias).
+      - "11435:11434"
     volumes:
       - ws-ollama_data:/root/.ollama
+    environment:
+      # Keep loaded models warm — a cold phi3:mini load on CPU takes ~2.5 min.
+      OLLAMA_KEEP_ALIVE: 30m
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:11434/api/tags"]
+      # ollama/ollama ships no curl/wget; probe the port with bash instead.
+      test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/11434'"]
       interval: 10s
       timeout: 5s
       retries: 5
@@ -121,6 +134,7 @@ services:
       context: ./arxiv-research-assistant/python-ml
       dockerfile: Dockerfile
     container_name: ws-arxiv-python-ml
+    <<: *dns-map
     ports:
       - "8001:8001"
     environment:
@@ -131,7 +145,18 @@ services:
       DB_NAME: arxiv_db
       QDRANT_URL: http://qdrant:6333
       OLLAMA_HOST: http://ollama:11434
-      LLM_PROVIDER: ollama
+      # Host RAM (~15GB) tanpa swap: load phi3:mini (~4.5GB peak) OOM ketika
+      # desktop GUI ikut berjalan. Rute Groq dipakai sebagai seksi utama
+      # (kunci valid, ~2-5s); phi3 tetap tersedia untuk demo lokal ketika
+      # host memori longgar — kembalikan ke "ollama" bila ingin lokal.
+      LLM_PROVIDER: groq
+      # The full MiniLM snapshot (shared with rag-research) is mounted read-only,
+      # so the embedder never needs outbound DNS.
+      HF_HUB_OFFLINE: "1"
+      GROQ_MODEL: openai/gpt-oss-20b
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
+    volumes:
+      - ./rag-research/hf-cache/hub:/root/.cache/huggingface/hub:ro
     depends_on:
       postgres:
         condition: service_healthy
@@ -140,10 +165,13 @@ services:
       ollama:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8001/health"]
+      # python:slim ships no curl/wget — use urllib instead. MiniLM downloads from
+      # HF Hub on first boot; give it a generous start period.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8001/health', timeout=5)"]
       interval: 10s
       timeout: 5s
       retries: 10
+      start_period: 180s
     networks:
       - ws-net
 
@@ -152,6 +180,7 @@ services:
       context: ./arxiv-research-assistant/go-backend
       dockerfile: Dockerfile
     container_name: ws-arxiv-go-backend
+    <<: *dns-map
     ports:
       - "8080:8080"
     environment:
@@ -170,7 +199,8 @@ services:
       arxiv-python-ml:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8080/health"]
+      # wget localhost resolves to ::1 while Fiber binds 0.0.0.0 (IPv4) — use the loopback IPv4 explicitly.
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -184,15 +214,21 @@ services:
       context: ./llm-eval-framework
       dockerfile: Dockerfile
     container_name: ws-llm-eval-framework
+    <<: *dns-map
     ports:
       - "8002:8002"
+    volumes:
+      # Keep eval artifacts and checkpoints, which are otherwise lost on rebuild.
+      - ./llm-eval-framework/reports:/app/reports
+      - ./llm-eval-framework/logs:/app/logs
     environment:
       OLLAMA_HOST: http://ollama:11434
     depends_on:
       ollama:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8002/health"]
+      # python:3.11-slim ships no curl/wget — use urllib instead.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8002/health', timeout=5)"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -206,11 +242,13 @@ services:
       context: ./mcp-gateway
       dockerfile: Dockerfile
     container_name: ws-mcp-gateway
+    <<: *dns-map
     ports:
       - "8090:8090"
     environment:
       POSTGRES_DSN: host=ws-postgres port=5432 user=arxiv password=arxiv_secret dbname=arxiv_db sslmode=disable
       GROQ_MODEL: openai/gpt-oss-20b
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
       ARXIV_SERVICE_URL: http://arxiv-go-backend:8080
       EVAL_SERVICE_URL: http://llm-eval-framework:8002
       RAG_SERVICE_URL: http://rag-api:8000
@@ -223,7 +261,7 @@ services:
       rag-api:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "wget", "-qO-", "http://localhost:8090/health"]
+      test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8090/health"]
       interval: 10s
       timeout: 5s
       retries: 10
@@ -237,6 +275,7 @@ services:
       context: ./rag-research
       dockerfile: Dockerfile
     container_name: ws-rag-api
+    <<: *dns-map
     ports:
       - "8000:8000"
     environment:
@@ -245,16 +284,20 @@ services:
       QDRANT_URL: http://qdrant:6333
       OLLAMA_HOST: http://ollama:11434
       GROQ_MODEL: openai/gpt-oss-20b
+      GROQ_API_KEY: ${GROQ_API_KEY:-}
     depends_on:
       qdrant:
         condition: service_healthy
       ollama:
         condition: service_healthy
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
-      interval: 10s
+      # Base python-slim ships no curl/wget — probe with urllib. The MiniLM
+      # snapshot is baked into the image, so startup needs no outbound DNS.
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"]
+      interval: 15s
       timeout: 5s
-      retries: 10
+      retries: 20
+      start_period: 120s
     networks:
       - ws-net
 
