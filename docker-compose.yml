@@ -66,6 +66,7 @@ services:
   redis:
     image: redis:7-alpine
     container_name: ws-redis
+    profiles: ["monitoring"]
     ports:
       - "6379:6379"
     healthcheck:
@@ -101,10 +102,11 @@ services:
   prometheus:
     image: prom/prometheus:latest
     container_name: ws-prometheus
+    profiles: ["monitoring"]
     ports:
       - "9090:9090"
     volumes:
-      - ./arxiv-research-assistant/infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ws-prometheus_data:/prometheus
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -117,12 +119,15 @@ services:
   grafana:
     image: grafana/grafana:latest
     container_name: ws-grafana
+    profiles: ["monitoring"]
     ports:
       - "3000:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_USERS_ALLOW_SIGN_UP: false
     volumes:
+      - ./infra/grafana/provisioning:/etc/grafana/provisioning:ro
+      - ./infra/grafana/dashboards:/var/lib/grafana/dashboards:ro
       - ws-grafana_data:/var/lib/grafana
     networks:
       - ws-net
@@ -191,8 +196,6 @@ services:
       DB_NAME: arxiv_db
       ML_SERVICE_URL: http://arxiv-python-ml:8001
       QDRANT_URL: http://qdrant:6333
-      LLM_PROVIDER: ollama
-      GROQ_MODEL: openai/gpt-oss-20b
     depends_on:
       postgres:
         condition: service_healthy

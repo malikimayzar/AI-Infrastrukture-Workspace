@@ -1,4 +1,4 @@
-.PHONY: help up down test test-arxiv test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models rotate-key check-secrets prune-builder df
+.PHONY: help up down test test-arxiv test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models rotate-key check-secrets prune-builder df monitoring-up monitoring-down
 
 # Workspace root Makefile for the AI Infrastructure Platform
 #
@@ -41,6 +41,12 @@ logs:  ## Follow logs (service name optional, e.g. make logs SERVICE=arxiv-go-ba
 
 status:  ## Show service status
 	$(COMPOSE) --env-file $(ENV_FILE) ps
+
+monitoring-up:  ## Start monitoring only (redis, prometheus, grafana)
+	$(COMPOSE) --env-file $(ENV_FILE) --profile monitoring up -d redis prometheus grafana
+
+monitoring-down:  ## Stop monitoring only (core stack tetap jalan)
+	$(COMPOSE) --env-file $(ENV_FILE) --profile monitoring stop redis prometheus grafana
 
 # ──────────────────────────────────────────────────────────────────────
 # Tests (each project)

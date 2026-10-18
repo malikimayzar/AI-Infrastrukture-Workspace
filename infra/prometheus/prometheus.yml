@@ -1,0 +1,17 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+# Mode A (root compose, KANONIK) — scrape lewat DNS ws-net.
+# Catatan: `host.docker.internal` tidak dapat menjangkau port yang di-publish
+# pada Docker rootless (koneksi ditolak), jadi target langsung ke service name.
+scrape_configs:
+  - job_name: 'go-backend'
+    static_configs:
+      - targets: ['arxiv-go-backend:8080']
+    metrics_path: '/metrics'
+
+  - job_name: 'python-ml'
+    static_configs:
+      - targets: ['arxiv-python-ml:8001']
+    metrics_path: '/metrics'
