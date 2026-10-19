@@ -88,6 +88,7 @@ docker run --rm --entrypoint python <img> -c "import pydantic_settings, rank_bm2
 - Dockerfile **tidak boleh mereferensikan tag image milik service LAIN** (termasuk `:latest`). Base wajib image publik yang dipin (versi/digest), dan seluruh dependency runtime harus eksplisit di `requirements/`.
 - Sejak 2026-10-20, `rag-research/Dockerfile` mandiri (multi-stage): base `python:3.12-slim@sha256:a6e34c...` + dependency dari `requirements/runtime.txt` + `torch==2.14.1+cpu`. Base lokal `ai-infra-workspace-rag-base:v1` tidak dipakai lagi.
   Konsekuensi: **builder butuh jaringan** (PyPI + `download.pytorch.org` untuk wheel CPU); image runtime tetap self-contained (`HF_HUB_OFFLINE=1`). Build `--network none` hanya mungkin bila seluruh wheel di-vendor.
+  Hasil terukur (2026-10-20): image `rag-api` **11.9 GB → 3.89 GB**; import gate lolos dengan `torch 2.14.1+cpu`; pembuatan embedding 384-dim dari cache HF berhasil dengan `HF_HUB_OFFLINE=1`.
 - Perhatikan output build: `docker compose up --build` memang selalu menyentuh layer build-chain — itu wajar, bukan tanda kerusakan.
 
 ---
