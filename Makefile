@@ -1,4 +1,4 @@
-.PHONY: help up down test test-arxiv test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models rotate-key check-secrets prune-builder df monitoring-up monitoring-down
+.PHONY: help up down test test-arxiv test-arxiv-ml test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models rotate-key check-secrets prune-builder df monitoring-up monitoring-down
 
 # Workspace root Makefile for the AI Infrastructure Platform
 #
@@ -52,13 +52,16 @@ monitoring-down:  ## Stop monitoring only (core stack tetap jalan)
 # Tests (each project)
 # ──────────────────────────────────────────────────────────────────────
 
-test: test-arxiv test-mcp test-eval test-rag  ## Run tests in all 4 projects
+test: test-arxiv test-arxiv-ml test-mcp test-eval test-rag  ## Run tests across all repos (including python-ml)
 
-test-arxiv:  ## Run arxiv-research-assistant tests
+test-arxiv:  ## Run arxiv-research-assistant Go backend tests
 	cd arxiv-research-assistant/go-backend && go test ./... -v
 
-test-mcp:  ## Run mcp-gateway tests
-	cd mcp-gateway && go test ./... -v
+test-arxiv-ml:  ## Run arxiv-research-assistant python-ml tests (offline-safe)
+	cd arxiv-research-assistant/python-ml && PYTHONPATH=. python -m pytest tests/ -v
+
+test-mcp:  ## Run mcp-gateway tests with the race detector
+	cd mcp-gateway && go test ./... -v -race
 
 test-eval:  ## Run llm-eval-framework tests
 	cd llm-eval-framework && python -m pytest tests/ -v
