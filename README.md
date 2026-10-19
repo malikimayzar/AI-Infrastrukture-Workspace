@@ -5,6 +5,8 @@ Root compose adalah **sumber kebenaran tunggal** untuk 4 submodule + infrastrukt
 
 ## Struktur
 
+- `PROJECT_GOALS.md` — spesifikasi rekayasa sistem, kriteria keberhasilan & visi produk.
+- `PROJECT_CONTEXT.md` — batas arsitektur & snapshot runtime ekosistem saat ini.
 - `docker-compose.yml` — topologi lengkap (11 service `ws-*`).
 - `Makefile` — `up`, `down`, `status`, `logs`, `smoke-e2e`, `rotate-key`, `check-secrets`, `prune-builder`, `df`, `test`, `monitoring-up`, `monitoring-down`.
 - `scripts/` — `rotate_key.sh`, `check_secrets.sh`, `smoke_e2e.sh`.
