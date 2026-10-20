@@ -2,8 +2,8 @@
 > **Project Title:** Scientific Claim & Prior-Art Auditor (Autonomous Research Grounding & Audit Engine)  
 > **Workspace:** `ai-infra-workspace` (Orchestrating `arxiv-research-assistant`, `mcp-gateway`, `rag-research`, `llm-eval-framework`)  
 > **Version:** 1.0.0  
-> **Status:** Phase 1 Workspace Harmonization (Active Integration)  
-> **Last Updated:** 2026-10-19  
+> **Status:** Phase 1 Workspace Harmonization (Selesai) — siap masuk Fase 2  
+> **Last Updated:** 2026-10-20  
 
 ---
 
@@ -223,13 +223,13 @@ Gateway dan Engine RAG menetapkan 3 zona keyakinan:
 
 ## 8. Roadmap Integrasi Bertahap (Phase-Gated Roadmap)
 
-### 🟢 Fase 1 — Workspace Harmonization & Test Suite Alignment (Sedang Berjalan)
+### 🟢 Fase 1 — Workspace Harmonization & Test Suite Alignment (Selesai — 2026-10-20)
 * [x] Topologi kanonik 11 service di root `docker-compose.yml`.
 * [x] Integrasi skrip rotasi kunci API (`scripts/rotate_key.sh`) dan audit rahasia (`scripts/check_secrets.sh`).
-* [ ] **Pemberesan Dockerfile `rag-research`:** Menghilangkan dependensi terhadap base image lokal `ai-infra-workspace-rag-base:v1` menuju Dockerfile mandiri multi-stage.
-* [ ] **Harmonisasi `make test` di Root:** Memasukkan 19 pengujian unit `arxiv-python-ml` ke target test root Makefile dengan `PYTHONPATH` yang benar.
-* [ ] **Perbaikan Mocking `test_qdrant_store.py`:** Memperbaiki cakupan mock modul agar tidak memicu pemuatan `SentenceTransformer` saat pengujian offline.
-* [ ] **Sinkronisasi Git Submodule Pointer:** Melakukan commit pointer submodule terbaru di root repository.
+* [x] **Pemberesan Dockerfile `rag-research`:** Dockerfile mandiri multi-stage tanpa base image lokal; build `--no-cache` terverifikasi — ukuran image **11,9 GB → 3,89 GB** (lihat `docs/ops-postmortem.md` S-5).
+* [x] **Harmonisasi `make test` di Root:** Target `test-arxiv-ml` (19 test, `PYTHONPATH=.`) masuk agregat `make test`; `test-mcp` kini memakai `-race`.
+* [x] **Perbaikan Mocking `test_qdrant_store.py`:** `QdrantVectorStore` menerima `embedder`/`client` injeksi; suite **~27,4 s → ~1,2 s** dan lolos dengan `HF_HUB_OFFLINE=1`.
+* [x] **Sinkronisasi Git Submodule Pointer:** Seluruh pointer submodule sinkron (`git submodule status` tanpa penanda `+`).
 
 ### 🟡 Fase 2 — Observabilitas Standar & Data Curation
 * [ ] **Ekspos Prometheus Metrics di Semua Titik:** Menambahkan endpoint `/metrics` OpenMetrics di `mcp-gateway` dan mengubah JSON `/metrics` pada `rag-research` menjadi format Prometheus yang valid.
@@ -255,7 +255,7 @@ Sistem hanya dianggap siap rilis (*production-ready*) apabila seluruh gerbang be
 - [ ] **Kemandirian Build:** `docker compose build --no-cache` berhasil di lingkungan bersih tanpa image lokal prapasang.
 - [ ] **Kelulusan Uji 100%:** Seluruh test suite di 4 proyek lulus bersih saat dijalankan via `make test`.
 - [ ] **Nol Kebocoran Kunci:** `make check-secrets` mengembalikan status `CLEAN` (kode keluar 0).
-- [ ] **End-to-End Smoke Test:** `make smoke-e2e` berhasil memvalidasi alur: *ingest $\rightarrow$ query arxiv $\rightarrow$ query research_rag $\rightarrow$ verifikasi database*.
+- [x] **End-to-End Smoke Test:** `make smoke-e2e` berhasil memvalidasi alur: *ingest $\rightarrow$ query arxiv $\rightarrow$ query research_rag $\rightarrow$ verifikasi database* (PASS 2026-10-20: ingest 238 chunk `2312.10997v5`, log `query_logs` terverifikasi).
 - [ ] **Monitoring Aktif:** Prometheus dapat mengikis target seluruh 4 service dan Grafana menampilkan metrik latensi p95 tanpa panel error.
 
 ---

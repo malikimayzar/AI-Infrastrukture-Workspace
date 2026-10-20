@@ -1,6 +1,6 @@
 # PROJECT CONTEXT — AI Infrastructure Platform
 > **Workspace:** `ai-infra-workspace`  
-> **Runtime Snapshot:** 2026-10-19  
+> **Runtime Snapshot:** 2026-10-20  
 > **Target Product:** Scientific Claim & Prior-Art Auditor Platform  
 
 ---
@@ -41,7 +41,8 @@ semua service     → qdrant :6333 / ollama :11435 / postgres :5432
 * **`mcp-gateway`:** 100% PASS (`go test ./...` dengan `-race` detection).
 * **`llm-eval-framework`:** 100% PASS (199 test unit lulus dalam ~5 detik).
 * **`arxiv-research-assistant/python-ml`:** 100% PASS (19 test unit lulus jika dijalankan dengan `PYTHONPATH`).
-* **`rag-research`:** 410 PASS, 9 FAILED (karena dependensi opsional `ragas` belum terpasang dan deteksi kebocoran query leakage pada 4 pertanyaan di dataset evaluasi v2).
+* **`rag-research`:** 411 PASS, 8 FAILED, 1 SKIPPED (per 2026-10-20; seluruh kegagalan berakar pada dependensi opsional `ragas` yang belum terpasang — 6× `test_ragas_importable.py`, `test_ci_contracts.py::test_every_src_module_imports`, dan `test_scripts_load_env.py::test_run_eval_works_standalone`). **Query leakage: PASS** (`test_query_leakage.py`, 18 test lulus) — 4 pertanyaan dataset v2 yang sebelumnya bocor sudah di bawah ambang cosine 0.90.
+* **`test_qdrant_store.py`:** offline-safe setelah `QdrantVectorStore` menerima `embedder`/`client` injeksi — **~27,4 s → ~1,2 s**, lolos dengan `HF_HUB_OFFLINE=1`.
 
 ---
 
