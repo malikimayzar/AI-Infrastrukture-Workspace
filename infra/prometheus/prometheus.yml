@@ -15,3 +15,18 @@ scrape_configs:
     static_configs:
       - targets: ['arxiv-python-ml:8001']
     metrics_path: '/metrics'
+
+  - job_name: 'mcp-gateway'
+    static_configs:
+      - targets: ['mcp-gateway:8090']
+    metrics_path: '/metrics'
+
+  - job_name: 'llm-eval-framework'
+    static_configs:
+      - targets: ['llm-eval-framework:8002']
+    metrics_path: '/metrics'
+
+  - job_name: 'rag-research'
+    static_configs:
+      - targets: ['rag-api:8000']
+    metrics_path: '/metrics'

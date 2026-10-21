@@ -1,6 +1,6 @@
 # PROJECT CONTEXT — AI Infrastructure Platform
 > **Workspace:** `ai-infra-workspace`  
-> **Runtime Snapshot:** 2026-10-20  
+> **Runtime Snapshot:** 2026-10-22
 > **Target Product:** Scientific Claim & Prior-Art Auditor Platform  
 
 ---
@@ -30,6 +30,8 @@ semua service     → qdrant :6333 / ollama :11435 / postgres :5432
    * Perintah `make smoke-e2e` menguji end-to-end: *ingest 1 paper arXiv $\rightarrow$ query via gateway backend arxiv $\rightarrow$ query via gateway backend research_rag $\rightarrow$ validasi baris di PostgreSQL*.
 2. **Monitoring (Opt-In):**
    * Profil `monitoring` (`make monitoring-up`) menyalakan Prometheus `:9090`, Grafana `:3000` (admin/admin), dan Redis `:6379`.
+   * Prometheus men-scrape lima job: go-backend, python-ml, mcp-gateway, llm-eval-framework, dan rag-api.
+   * Redis untuk cache RAG bersifat opt-in (`REDIS_ENABLED=false` default) karena Redis hanya hidup di profil monitoring.
 3. **Pengelolaan Rahasia:**
    * Diatur via `scripts/rotate_key.sh` dan `scripts/check_secrets.sh`. File `.env` berada di root dan di-gitignored.
 
@@ -39,9 +41,9 @@ semua service     → qdrant :6333 / ollama :11435 / postgres :5432
 
 * **`arxiv-research-assistant/go-backend`:** 100% PASS (`go test ./...`).
 * **`mcp-gateway`:** 100% PASS (`go test ./...` dengan `-race` detection).
-* **`llm-eval-framework`:** 100% PASS (199 test unit lulus dalam ~5 detik).
+* **`llm-eval-framework`:** 100% PASS (208 test unit lulus dalam ~5 detik).
 * **`arxiv-research-assistant/python-ml`:** 100% PASS (19 test unit lulus jika dijalankan dengan `PYTHONPATH`).
-* **`rag-research`:** 411 PASS, 8 FAILED, 1 SKIPPED (per 2026-10-20; seluruh kegagalan berakar pada dependensi opsional `ragas` yang belum terpasang — 6× `test_ragas_importable.py`, `test_ci_contracts.py::test_every_src_module_imports`, dan `test_scripts_load_env.py::test_run_eval_works_standalone`). **Query leakage: PASS** (`test_query_leakage.py`, 18 test lulus) — 4 pertanyaan dataset v2 yang sebelumnya bocor sudah di bawah ambang cosine 0.90.
+* **`rag-research`:** 419 PASS, 1 SKIPPED, 0 FAILED (per 2026-10-22; `ragas` sudah terpasang di venv root). **Query leakage: PASS** (`test_query_leakage.py`, 18 test lulus) — 4 pertanyaan dataset v2 yang sebelumnya bocor sudah di bawah ambang cosine 0.90.
 * **`test_qdrant_store.py`:** offline-safe setelah `QdrantVectorStore` menerima `embedder`/`client` injeksi — **~27,4 s → ~1,2 s**, lolos dengan `HF_HUB_OFFLINE=1`.
 
 ---

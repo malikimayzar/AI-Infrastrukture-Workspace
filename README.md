@@ -8,13 +8,13 @@ Root compose adalah **sumber kebenaran tunggal** untuk 4 submodule + infrastrukt
 - `PROJECT_GOALS.md` — spesifikasi rekayasa sistem, kriteria keberhasilan & visi produk.
 - `PROJECT_CONTEXT.md` — batas arsitektur & snapshot runtime ekosistem saat ini.
 - `docker-compose.yml` — topologi lengkap (11 service `ws-*`).
-- `Makefile` — `up`, `down`, `status`, `logs`, `smoke-e2e`, `rotate-key`, `check-secrets`, `prune-builder`, `df`, `test`, `monitoring-up`, `monitoring-down`.
+- `Makefile` — `up`, `down`, `status`, `logs`, `smoke-e2e`, `seed-rag`, `rotate-key`, `check-secrets`, `prune-builder`, `df`, `test`, `monitoring-up`, `monitoring-down`.
 - `scripts/` — `rotate_key.sh`, `check_secrets.sh`, `smoke_e2e.sh`.
 - `infra/grafana/` — provisioning datasource Prometheus + dashboard monitoring (opt-in).
 - `docs/ops-postmortem.md` — insiden & pola pemulihan.
 - Submodul: `arxiv-research-assistant`, `mcp-gateway`, `rag-research`, `llm-eval-framework`.
 
-## Kontrak antar layanan (jarung antar folder)
+## Kontrak antar layanan (jaring antar folder)
 
 ```
 mcp-gateway :8090 ─┬─ ARXIV_SERVICE_URL → arxiv-go-backend :8080
@@ -42,7 +42,8 @@ Port di host: **8090** mcp-gateway, **8080** go-backend arxiv, **8001** python-m
 Redis/prometheus/grafana **tidak ikut `make up`** (profil `monitoring` — hemat ±0.3–0.5 GB RAM).
 Nyalakan saat butuh: `make monitoring-up` → prometheus `:9090`, grafana `:3000` (admin/admin).
 Matikan: `make monitoring-down` (stack inti tetap jalan). Prometheus men-scrape `/metrics`
-go-backend + python-ml; datasource prometheus & dashboard ter-provision otomatis di grafana.
+go-backend, python-ml, mcp-gateway, llm-eval-framework, dan rag-api; datasource
+prometheus & dashboard ter-provision otomatis di grafana.
 
 ## Mode A/B — aturan kepemilikan
 

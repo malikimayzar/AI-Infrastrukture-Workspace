@@ -25,5 +25,10 @@ build/
 *.log
 logs/
 
+# Test and generated debug artifacts
+.coverage
+results/
+
 # Environment
 .env
+.aider*

@@ -1,4 +1,4 @@
-.PHONY: help up down test test-arxiv test-arxiv-ml test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models rotate-key check-secrets prune-builder df monitoring-up monitoring-down
+.PHONY: help up down test test-arxiv test-arxiv-ml test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models rotate-key check-secrets prune-builder df monitoring-up monitoring-down seed-rag
 
 # Workspace root Makefile for the AI Infrastructure Platform
 #
@@ -12,6 +12,13 @@
 
 COMPOSE ?= docker compose
 ENV_FILE ?= .env
+
+# Prefer the workspace virtualenv when present; CI/fresh clones fall back to
+# python3 on PATH. Keep this absolute so `cd`-ing into a subproject still works.
+PYTHON ?= python3
+ifneq ($(wildcard venv/bin/python),)
+PYTHON := $(CURDIR)/venv/bin/python
+endif
 
 # ──────────────────────────────────────────────────────────────────────
 # Help
@@ -58,16 +65,16 @@ test-arxiv:  ## Run arxiv-research-assistant Go backend tests
 	cd arxiv-research-assistant/go-backend && go test ./... -v
 
 test-arxiv-ml:  ## Run arxiv-research-assistant python-ml tests (offline-safe)
-	cd arxiv-research-assistant/python-ml && PYTHONPATH=. python -m pytest tests/ -v
+	cd arxiv-research-assistant/python-ml && PYTHONPATH=. $(PYTHON) -m pytest tests/ -v
 
 test-mcp:  ## Run mcp-gateway tests with the race detector
 	cd mcp-gateway && go test ./... -v -race
 
 test-eval:  ## Run llm-eval-framework tests
-	cd llm-eval-framework && python -m pytest tests/ -v
+	cd llm-eval-framework && $(PYTHON) -m pytest tests/ -v
 
 test-rag:  ## Run rag-research tests
-	cd rag-research && python -m pytest tests/ -v
+	cd rag-research && $(PYTHON) -m pytest tests/ -v
 
 # ──────────────────────────────────────────────────────────────────────
 # Ollama (needed for LLM generation)
@@ -105,6 +112,13 @@ prune-builder:  ## Reclaim docker build cache (keep 3GB) — confirm with y/N
 
 df:  ## Show docker disk usage
 	docker system df
+
+seed-rag:  ## Seed RAG research corpus and Qdrant index idempotently
+	# `-m` (not a script path) keeps the repo root on sys.path so `import src`
+	# works. Requires the Qdrant service to be running (`make up`).
+	cd rag-research && $(PYTHON) -m src.ingestion.document_loader
+	cd rag-research && $(PYTHON) -m src.ingestion.semantic_chunker
+	cd rag-research && $(PYTHON) -m src.retrieval.qdrant_store
 
 # ──────────────────────────────────────────────────────────────────────
 # Project sub-make (delegate to project Makefiles)

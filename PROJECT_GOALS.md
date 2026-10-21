@@ -3,7 +3,7 @@
 > **Workspace:** `ai-infra-workspace` (Orchestrating `arxiv-research-assistant`, `mcp-gateway`, `rag-research`, `llm-eval-framework`)  
 > **Version:** 1.0.0  
 > **Status:** Phase 1 Workspace Harmonization (Selesai) — siap masuk Fase 2  
-> **Last Updated:** 2026-10-20  
+> **Last Updated:** 2026-10-22
 
 ---
 
@@ -93,7 +93,7 @@ Untuk menjaga kebersihan arsitektur, kepemilikan tanggung jawab (*ownership boun
 | **Hallucination Rate** | **$0.0\%$** | Tidak ada klaim dalam jawaban yang bertentangan atau tidak memiliki bukti sama sekali pada korpus referensi. | `TESTED` via test suite fase 1 |
 | **Abstention Accuracy** | $\ge 95\%$ | Menolak menjawab (`INSUFFICIENT_CONTEXT` / `Not found in context.`) pada pertanyaan di luar korpus atau adversarial. | `ENFORCED` oleh `ConfidenceEngine` |
 | **Citation Attribution** | $100\%$ | Setiap kalimat pada jawaban yang berstatus valid memiliki minimal 1 metadata referensi (`chunk_id` & `source_id`). | `ENFORCED` pada kontrak bukti Gateway |
-| **Consistency / Paraphrase** | $\ge 0.85$ | Skor stabilitas jawaban ketika pertanyaan yang sama diparafrasa secara linguistik. | `IMPLEMENTED` (199 passing tests) |
+| **Consistency / Paraphrase** | $\ge 0.85$ | Skor stabilitas jawaban ketika pertanyaan yang sama diparafrasa secara linguistik. | `IMPLEMENTED` (208 passing tests) |
 
 ### 3.2 Kualitas Retrieval (*Retrieval Quality*)
 
@@ -232,10 +232,10 @@ Gateway dan Engine RAG menetapkan 3 zona keyakinan:
 * [x] **Sinkronisasi Git Submodule Pointer:** Seluruh pointer submodule sinkron (`git submodule status` tanpa penanda `+`).
 
 ### 🟡 Fase 2 — Observabilitas Standar & Data Curation
-* [ ] **Ekspos Prometheus Metrics di Semua Titik:** Menambahkan endpoint `/metrics` OpenMetrics di `mcp-gateway` dan mengubah JSON `/metrics` pada `rag-research` menjadi format Prometheus yang valid.
-* [ ] **Pembersihan Kebocoran Dataset (*Query Leakage*):** Memparafrasakan query `q02`, `q16`, `q13`, dan `q03` pada dataset evaluasi agar skor kesamaan terhadap gold chunk $< 0.90$.
-* [ ] **Mekanisme Auto-Seed Qdrant:** Menambahkan target `make seed-rag` agar boot awal dari volume bersih tidak mengalami crash `require_nonempty_index`.
-* [ ] **Koneksi Caching Redis:** Menghubungkan Redis untuk caching embedding query dan mitigasi limit kuota API.
+* [x] **Ekspos Prometheus Metrics di Semua Titik:** `/metrics` tersedia di `go-backend`, `python-ml`, `mcp-gateway`, `llm-eval-framework`, dan `rag-research`; kelima job terdaftar di `infra/prometheus/prometheus.yml`.
+* [x] **Pembersihan Kebocoran Dataset (*Query Leakage*):** Memparafrasakan query `q02`, `q16`, `q13`, dan `q03` pada dataset evaluasi agar skor kesamaan terhadap gold chunk $< 0.90$.
+* [x] **Mekanisme Auto-Seed Qdrant:** `make seed-rag` dan auto-seed saat startup kini memanggil modul dengan `python -m` dari root repo, sehingga boot awal dari volume Qdrant kosong tidak lagi gagal `ModuleNotFoundError` sebelum mencapai `require_nonempty_index`.
+* [ ] **Koneksi Caching Redis:** Kode cache, dependency, dan env compose sudah terpasang, tetapi default `REDIS_ENABLED=false` karena Redis hanya hidup di profil `monitoring`; belum diverifikasi sebagai jalur produksi.
 
 ### 🔵 Fase 3 — Standarisasi Protokol Wire MCP (Model Context Protocol)
 * [ ] Mengembangkan gateway dari HTTP REST biasa ke implementasi resmi **MCP JSON-RPC 2.0 (stdio / SSE transport)**.
@@ -256,7 +256,7 @@ Sistem hanya dianggap siap rilis (*production-ready*) apabila seluruh gerbang be
 - [ ] **Kelulusan Uji 100%:** Seluruh test suite di 4 proyek lulus bersih saat dijalankan via `make test`.
 - [ ] **Nol Kebocoran Kunci:** `make check-secrets` mengembalikan status `CLEAN` (kode keluar 0).
 - [x] **End-to-End Smoke Test:** `make smoke-e2e` berhasil memvalidasi alur: *ingest $\rightarrow$ query arxiv $\rightarrow$ query research_rag $\rightarrow$ verifikasi database* (PASS 2026-10-20: ingest 238 chunk `2312.10997v5`, log `query_logs` terverifikasi).
-- [ ] **Monitoring Aktif:** Prometheus dapat mengikis target seluruh 4 service dan Grafana menampilkan metrik latensi p95 tanpa panel error.
+- [ ] **Monitoring Aktif:** Prometheus dapat mengikis seluruh 5 job (go-backend, python-ml, mcp-gateway, llm-eval-framework, rag-api) dan Grafana menampilkan metrik latensi p95 tanpa panel error.
 
 ---
 

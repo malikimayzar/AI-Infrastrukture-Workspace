@@ -288,6 +288,11 @@ services:
       OLLAMA_HOST: ${OLLAMA_HOST:-http://ollama:11434}
       GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
+      # Optional response cache. Redis is only started by the monitoring
+      # profile, so keep this off by default and point it at the compose DNS
+      # name when enabled (`make monitoring-up` + REDIS_ENABLED=true).
+      REDIS_ENABLED: ${REDIS_ENABLED:-false}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
     depends_on:
       qdrant:
         condition: service_healthy

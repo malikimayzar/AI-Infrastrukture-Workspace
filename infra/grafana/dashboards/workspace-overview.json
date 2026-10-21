@@ -22,7 +22,7 @@
             "mode": "absolute",
             "steps": [
               { "color": "red", "value": null },
-              { "color": "green", "value": 2 }
+              { "color": "green", "value": 5 }
             ]
           }
         },
@@ -38,7 +38,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "sum by (job) (rate(http_request_duration_seconds_count[5m]))",
+          "expr": "sum by (job) (rate(http_request_duration_seconds_count[5m]) or rate(gateway_http_request_duration_seconds_count[5m]) or rate(rag_latency_seconds_count[5m]))",
           "legendFormat": "{{job}}"
         }
       ],
@@ -53,7 +53,7 @@
       "targets": [
         {
           "refId": "A",
-          "expr": "histogram_quantile(0.95, sum by (job, le) (rate(http_request_duration_seconds_bucket[5m])))",
+          "expr": "histogram_quantile(0.95, sum by (job, le) (rate(http_request_duration_seconds_bucket[5m]) or rate(gateway_http_request_duration_seconds_bucket[5m]) or rate(rag_latency_seconds_bucket[5m])))",
           "legendFormat": "{{job}}"
         }
       ],

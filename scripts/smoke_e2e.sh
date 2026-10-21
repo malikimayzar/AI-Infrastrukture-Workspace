@@ -21,6 +21,8 @@ set -euo pipefail
 GATEWAY_URL="${GATEWAY_URL:-http://localhost:8090}"
 ARXIV_URL="${ARXIV_URL:-http://localhost:8080}"
 ML_URL="${ML_URL:-http://localhost:8001}"
+RAG_URL="${RAG_URL:-http://localhost:8000}"
+EVAL_URL="${EVAL_URL:-http://localhost:8002}"
 PG_HOST="${PG_HOST:-localhost}"
 PG_PORT="${PG_PORT:-5432}"
 PG_USER="${PG_USER:-arxiv}"
@@ -56,7 +58,10 @@ log "Step 1: Waiting for services to be healthy"
 
 wait_for "arxiv go-backend"   "$ARXIV_URL/health"
 wait_for "arxiv python-ml"    "$ML_URL/health"
-wait_for "mcp-gateway"        "$GATEWAY_URL/health"
+wait_for "rag-api"            "$RAG_URL/health"
+wait_for "llm-eval-framework" "$EVAL_URL/health"
+# /ready probes ArXiv, evaluator, and RAG together; /health is liveness only.
+wait_for "mcp-gateway readiness" "$GATEWAY_URL/ready"
 
 # ── Step 2: Ingest a paper ─────────────────────────────────────────────
 
