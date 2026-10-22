@@ -5,7 +5,7 @@
 
 ---
 
-## 1. RINGKASAN RUNTIME EKOSISTEM
+## 1. TOPOLOGI WORKSPACE (KONFIGURASI)
 
 Workspace ini mengorkestrasi 4 repositori inti menggunakan topologi kanonik Docker Compose di root ([`docker-compose.yml`](docker-compose.yml)):
 
@@ -14,7 +14,8 @@ mcp-gateway :8090 ─┬─ ARXIV_SERVICE_URL → arxiv-go-backend :8080
                    │                        └─ ML_SERVICE_URL → arxiv-python-ml :8001
                    ├─ EVAL_SERVICE_URL  → llm-eval-framework :8002 (Ollama / offline)
                    └─ RAG_SERVICE_URL   → rag-api :8000
-semua service     → qdrant :6333 / ollama :11435 / postgres :5432
+semua service     → qdrant :6333 / ollama :11434 (internal) / postgres :5432
+host mengakses Ollama container melalui :11435
 ```
 
 * **Model Orkestrator & Generasi Utama:** Groq `openai/gpt-oss-20b` (seragam di semua titik lewat `.env` root).
@@ -23,21 +24,27 @@ semua service     → qdrant :6333 / ollama :11435 / postgres :5432
 
 ---
 
-## 2. STATUS INTEGRASI SAAT INI
+## 2. STATUS INTEGRASI DAN BATAS BUKTI
 
-1. **Jalur Eksekusi Kanonik (Mode A — Root Compose):**
-   * Perintah `make up` menyalakan 8 kontainer inti (`ws-*`).
-   * Perintah `make smoke-e2e` menguji end-to-end: *ingest 1 paper arXiv $\rightarrow$ query via gateway backend arxiv $\rightarrow$ query via gateway backend research_rag $\rightarrow$ validasi baris di PostgreSQL*.
+1. **Jalur eksekusi integrasi yang disarankan (root Compose):**
+   * Compose mendefinisikan 8 layanan inti; tiga layanan monitoring/Redis aktif melalui profile `monitoring`.
+   * Gateway memiliki adapter source-level untuk backend `arxiv` dan `research_rag`. Laporan smoke 2026-10-20 mencatat ingest dan query keduanya, tetapi smoke bukan evaluasi mutu jawaban atau gate kesiapan produksi.
+   * Pemeriksaan query log smoke mencari teks query tetap; baris dari run lama dapat ikut terhitung. Jangan gunakan hasil tersebut sebagai bukti bahwa run terbaru menulis log tanpa verifikasi tambahan.
 2. **Monitoring (Opt-In):**
    * Profil `monitoring` (`make monitoring-up`) menyalakan Prometheus `:9090`, Grafana `:3000` (admin/admin), dan Redis `:6379`.
    * Prometheus men-scrape lima job: go-backend, python-ml, mcp-gateway, llm-eval-framework, dan rag-api.
    * Redis untuk cache RAG bersifat opt-in (`REDIS_ENABLED=false` default) karena Redis hanya hidup di profil monitoring.
 3. **Pengelolaan Rahasia:**
    * Diatur via `scripts/rotate_key.sh` dan `scripts/check_secrets.sh`. File `.env` berada di root dan di-gitignored.
+   * Compose masih memiliki nilai fallback untuk kredensial layanan dan Grafana. Perlakukan sebagai konfigurasi pengembangan lokal; ganti sebelum mengekspos layanan ke jaringan bersama.
 
 ---
 
-## 3. STATUS PENGUJIAN KODE (TEST SUITE STATUS)
+## 3. SNAPSHOT TEST YANG TERCATAT
+
+Angka di bawah adalah catatan dari dokumen dan tanggal yang disebutkan, bukan hasil
+test yang dijalankan saat snapshot konteks ini dibaca. Jalankan gate yang sesuai
+sebelum memakai angka tersebut sebagai bukti rilis.
 
 * **`arxiv-research-assistant/go-backend`:** 100% PASS (`go test ./...`).
 * **`mcp-gateway`:** 100% PASS (`go test ./...` dengan `-race` detection).

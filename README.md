@@ -1,7 +1,8 @@
 # AI Infra Workspace — 4 Proyek, 1 Orkestrasi
 
-Root compose adalah **sumber kebenaran tunggal** untuk 4 submodule + infrastruktur bersama
-(postgres, qdrant, ollama, redis, prometheus, grafana).
+Root Compose adalah jalur yang disarankan untuk menjalankan integrasi empat repo dan
+infrastruktur bersama. Compose per repo tetap tersedia untuk pengembangan terisolasi;
+konfigurasinya bukan sumber topologi lintas-repo.
 
 ## Struktur
 
@@ -25,6 +26,12 @@ semua service → qdrant :6333 / ollama :11434 / postgres :5432
 GROQ_MODEL = openai/gpt-oss-20b  (satu nilai di semua titik)
 ```
 
+Gateway saat ini menyediakan HTTP/JSON (`/ask`, `/plan`, `/tool`). Dukungan wire
+protocol MCP belum tersedia; nama repo tidak berarti klien MCP sudah kompatibel.
+Pilih `backend: "arxiv"` untuk korpus paper yang di-ingest melalui ArXiv Assistant,
+atau `backend: "research_rag"` untuk korpus tetap milik RAG Research. Kedua korpus
+dan indeksnya terpisah.
+
 ## Quickstart
 
 ```bash
@@ -33,14 +40,21 @@ make up
 make smoke-e2e                # alur: ingest → query /ask → verifikasi query_logs di DB
 ```
 
+Smoke test adalah pemeriksaan integrasi dasar, bukan evaluasi kualitas jawaban atau
+acceptance produksi. Pemeriksaan log ArXiv saat ini mencari teks query tetap sehingga
+baris dari run sebelumnya dapat ikut terhitung; lihat batasan ini sebelum memakai
+hasil smoke sebagai bukti eksekusi terbaru.
+
 Port di host: **8090** mcp-gateway, **8080** go-backend arxiv, **8001** python-ml, **8002** llm-eval,
 **8000** rag-api, **11435** ollama (11434 = daemon host), **5432** postgres, **6333/6334** qdrant,
 **6379** redis, **9090** prometheus, **3000** grafana.
 
 ## Monitoring (opt-in)
 
-Redis/prometheus/grafana **tidak ikut `make up`** (profil `monitoring` — hemat ±0.3–0.5 GB RAM).
-Nyalakan saat butuh: `make monitoring-up` → prometheus `:9090`, grafana `:3000` (admin/admin).
+Redis/prometheus/grafana **tidak ikut `make up`** (profil `monitoring`).
+Nyalakan saat butuh: `make monitoring-up` → Prometheus `:9090`, Grafana `:3000`.
+Kredensial default Grafana dan kredensial fallback database hanya untuk pengembangan lokal;
+ganti dengan nilai rahasia sebelum mengekspos port ke jaringan lain.
 Matikan: `make monitoring-down` (stack inti tetap jalan). Prometheus men-scrape `/metrics`
 go-backend, python-ml, mcp-gateway, llm-eval-framework, dan rag-api; datasource
 prometheus & dashboard ter-provision otomatis di grafana.

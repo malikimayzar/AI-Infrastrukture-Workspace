@@ -2,7 +2,7 @@
 > **Project Title:** Scientific Claim & Prior-Art Auditor (Autonomous Research Grounding & Audit Engine)  
 > **Workspace:** `ai-infra-workspace` (Orchestrating `arxiv-research-assistant`, `mcp-gateway`, `rag-research`, `llm-eval-framework`)  
 > **Version:** 1.0.0  
-> **Status:** Phase 1 Workspace Harmonization (Selesai) — siap masuk Fase 2  
+> **Status:** Fase 1 harmonisasi tercatat selesai; Fase 2 masih berjalan karena Redis dan monitoring runtime belum diverifikasi.
 > **Last Updated:** 2026-10-22
 
 ---
@@ -30,6 +30,11 @@
 ---
 
 ## 1. System Objective & Product Vision
+
+> **Status boundary:** This section describes the intended product, not the current
+> release capability. The current gateway is HTTP/JSON; claim-level attribution,
+> calibrated confidence, MCP interoperability, and production readiness require
+> their own acceptance evidence below.
 
 ### 1.1 Visi Produk: *Scientific Claim & Prior-Art Auditor*
 Sebuah platform perangkat lunak B2B berstandar *mission-critical* untuk tim R&D, konsultan paten, penerbit jurnal akademis, dan regulator kepatuhan yang:
@@ -89,11 +94,11 @@ Untuk menjaga kebersihan arsitektur, kepemilikan tanggung jawab (*ownership boun
 
 | Metrik | Target Produksi | Protokol Pengukuran | Status Saat Ini |
 |---|---|---|---|
-| **Faithfulness Score** | $\ge 0.90$ | Pangsa klaim jawaban yang terbukti secara semantik (*cosine similarity* $\ge 0.82$) dalam konteks yang diambil. | `IMPLEMENTED` di `llm-eval-framework` |
-| **Hallucination Rate** | **$0.0\%$** | Tidak ada klaim dalam jawaban yang bertentangan atau tidak memiliki bukti sama sekali pada korpus referensi. | `TESTED` via test suite fase 1 |
-| **Abstention Accuracy** | $\ge 95\%$ | Menolak menjawab (`INSUFFICIENT_CONTEXT` / `Not found in context.`) pada pertanyaan di luar korpus atau adversarial. | `ENFORCED` oleh `ConfidenceEngine` |
-| **Citation Attribution** | $100\%$ | Setiap kalimat pada jawaban yang berstatus valid memiliki minimal 1 metadata referensi (`chunk_id` & `source_id`). | `ENFORCED` pada kontrak bukti Gateway |
-| **Consistency / Paraphrase** | $\ge 0.85$ | Skor stabilitas jawaban ketika pertanyaan yang sama diparafrasa secara linguistik. | `IMPLEMENTED` (208 passing tests) |
+| **Faithfulness** | Target awal $\ge 0.90$; belum menjadi gate rilis | Skor heuristik dukungan klaim terhadap konteks, bukan ukuran kebenaran faktual atau confidence terkalibrasi. | Diimplementasikan; validitas lintas-domain dan kalibrasinya belum dibuktikan |
+| **Hallucination rate** | Target jangka panjang 0%; belum terbukti | Ukur klaim salah/tidak didukung pada dataset berlabel dan hasil review manusia. | Bukti statistik belum cukup untuk mengklaim 0% |
+| **Abstention accuracy** | Target awal $\ge 95\%$; belum menjadi gate rilis | Ukur keputusan abstain dan false-abstain pada set answerable/unanswerable terpisah. | Heuristik ada; confidence belum terkalibrasi |
+| **Citation attribution** | Target jangka panjang 100%; belum terbukti | Ukur apakah klaim/kalimat jawaban memiliki rujukan sumber dan chunk yang tepat. | Gateway membawa evidence per chunk; atribusi klaim per kalimat belum dijamin |
+| **Consistency / paraphrase** | Target awal $\ge 0.85$; perlu hasil evaluasi bertanggal | Bandingkan jawaban parafrasa pada dataset dan model dengan versi tercatat. | Evaluator tersedia; jumlah unit test bukan hasil kualitas |
 
 ### 3.2 Kualitas Retrieval (*Retrieval Quality*)
 
@@ -101,7 +106,7 @@ Untuk menjaga kebersihan arsitektur, kepemilikan tanggung jawab (*ownership boun
 |---|---|---|
 | **Recall@10** | $\ge 90\%$ | Persentase query di mana *gold chunk* muncul dalam 10 kandidat teratas. |
 | **MRR@10** | $\ge 0.70$ | *Mean Reciprocal Rank* pada 10 kandidat teratas di seluruh dataset evaluasi. |
-| **RRF Contribution** | Imbang (30-70%) | Dense dan Sparse harus saling mengisi; tidak ada jalur pencarian yang mendominasi 100%. |
+| **RRF Contribution** | Ukur per dataset; belum menjadi gate numerik | Laporkan kontribusi dan kasus dense-only/BM25-only. Sampel saat ini belum cukup untuk menetapkan rentang universal 30–70%. |
 | **Leakage Tolerance** | $0$ Baris Bocor | Cosine similarity query terhadap gold chunk tidak boleh $\ge 0.90$ (mencegah *data contamination*). |
 
 ---
@@ -231,11 +236,11 @@ Gateway dan Engine RAG menetapkan 3 zona keyakinan:
 * [x] **Perbaikan Mocking `test_qdrant_store.py`:** `QdrantVectorStore` menerima `embedder`/`client` injeksi; suite **~27,4 s → ~1,2 s** dan lolos dengan `HF_HUB_OFFLINE=1`.
 * [x] **Sinkronisasi Git Submodule Pointer:** Seluruh pointer submodule sinkron (`git submodule status` tanpa penanda `+`).
 
-### 🟡 Fase 2 — Observabilitas Standar & Data Curation
+### 🟡 Fase 2 — Observabilitas Standar & Data Curation (berjalan)
 * [x] **Ekspos Prometheus Metrics di Semua Titik:** `/metrics` tersedia di `go-backend`, `python-ml`, `mcp-gateway`, `llm-eval-framework`, dan `rag-research`; kelima job terdaftar di `infra/prometheus/prometheus.yml`.
 * [x] **Pembersihan Kebocoran Dataset (*Query Leakage*):** Memparafrasakan query `q02`, `q16`, `q13`, dan `q03` pada dataset evaluasi agar skor kesamaan terhadap gold chunk $< 0.90$.
 * [x] **Mekanisme Auto-Seed Qdrant:** `make seed-rag` dan auto-seed saat startup kini memanggil modul dengan `python -m` dari root repo, sehingga boot awal dari volume Qdrant kosong tidak lagi gagal `ModuleNotFoundError` sebelum mencapai `require_nonempty_index`.
-* [ ] **Koneksi Caching Redis:** Kode cache, dependency, dan env compose sudah terpasang, tetapi default `REDIS_ENABLED=false` karena Redis hanya hidup di profil `monitoring`; belum diverifikasi sebagai jalur produksi.
+* [ ] **Koneksi Caching Redis:** Kode cache, dependency, dan env compose sudah terpasang, tetapi default `REDIS_ENABLED=false` karena Redis hanya hidup di profil `monitoring`; jalur cache belum diverifikasi runtime.
 
 ### 🔵 Fase 3 — Standarisasi Protokol Wire MCP (Model Context Protocol)
 * [ ] Mengembangkan gateway dari HTTP REST biasa ke implementasi resmi **MCP JSON-RPC 2.0 (stdio / SSE transport)**.
@@ -255,7 +260,7 @@ Sistem hanya dianggap siap rilis (*production-ready*) apabila seluruh gerbang be
 - [ ] **Kemandirian Build:** `docker compose build --no-cache` berhasil di lingkungan bersih tanpa image lokal prapasang.
 - [ ] **Kelulusan Uji 100%:** Seluruh test suite di 4 proyek lulus bersih saat dijalankan via `make test`.
 - [ ] **Nol Kebocoran Kunci:** `make check-secrets` mengembalikan status `CLEAN` (kode keluar 0).
-- [x] **End-to-End Smoke Test:** `make smoke-e2e` berhasil memvalidasi alur: *ingest $\rightarrow$ query arxiv $\rightarrow$ query research_rag $\rightarrow$ verifikasi database* (PASS 2026-10-20: ingest 238 chunk `2312.10997v5`, log `query_logs` terverifikasi).
+- [x] **Smoke integrasi tercatat:** laporan 2026-10-20 menyatakan ingest dan query kedua backend berhasil. Ini smoke dasar, bukan acceptance kualitas/produksi; pemeriksaan query log memakai teks tetap dan belum mengikat hasil ke run terbaru.
 - [ ] **Monitoring Aktif:** Prometheus dapat mengikis seluruh 5 job (go-backend, python-ml, mcp-gateway, llm-eval-framework, rag-api) dan Grafana menampilkan metrik latensi p95 tanpa panel error.
 
 ---

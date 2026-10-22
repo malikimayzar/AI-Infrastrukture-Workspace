@@ -13,11 +13,13 @@ review/push**. Satu penulis per file/repo. Lihat `CONVENTIONS.md`.
 | 4 | Prometheus metrics `rag-research` | aider (setelah #1) | `ai/metrics-rag` | `rag-research/src/api/`, `tests/` | `/metrics` valid | ✅ endpoint + job scrape ditambahkan |
 | 5 | Prometheus metrics `mcp-gateway` | aider (setelah #1) | `ai/metrics-gw` | `mcp-gateway/` | target UP | ✅ endpoint + job scrape ditambahkan |
 | 6 | Verifikasi monitoring Prometheus/Grafana | opencode | `main` | `infra/`, `docs/` | targets UP | 🔄 butuh `make monitoring-up` + stack hidup |
+| 7 | Harmonisasi dokumentasi lintas-repo | Codex | `main` + branch repo aktif | dokumen Markdown utama | status, roadmap, kontrak, dan batas klaim saling konsisten | ✅ 2026-10-22: status/roadmap/kontrak diklarifikasi; gate runtime dan kualitas tetap terbuka |
 
 ## LOCK
 
-- Tidak ada lock aktif per 2026-10-22. Lock `aider` untuk #1 dilepas setelah
-  suite `rag-research` berjalan 419 pass / 1 skip.
+- Tidak ada lock aktif per 2026-10-22. Lock Codex untuk #7 dilepas setelah
+  dokumentasi utama diselaraskan; tidak ada perubahan runtime.
+- Lock `aider` untuk #1 dilepas setelah suite `rag-research` berjalan 419 pass / 1 skip.
 
 ## Catatan
 
