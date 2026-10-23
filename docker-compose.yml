@@ -160,8 +160,6 @@ services:
       HF_HUB_OFFLINE: "1"
       GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
-    volumes:
-      - ./rag-research/hf-cache/hub:/root/.cache/huggingface/hub:ro
     depends_on:
       postgres:
         condition: service_healthy
