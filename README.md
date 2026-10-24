@@ -9,7 +9,7 @@ konfigurasinya bukan sumber topologi lintas-repo.
 - `PROJECT_GOALS.md` — spesifikasi rekayasa sistem, kriteria keberhasilan & visi produk.
 - `PROJECT_CONTEXT.md` — batas arsitektur & snapshot runtime ekosistem saat ini.
 - `docker-compose.yml` — topologi lengkap (11 service `ws-*`).
-- `Makefile` — `up`, `down`, `status`, `logs`, `smoke-e2e`, `seed-rag`, `rotate-key`, `check-secrets`, `prune-builder`, `df`, `test`, `monitoring-up`, `monitoring-down`.
+- `Makefile` — `up`, `down`, `status`, `logs`, `smoke-e2e`, `seed-rag`, `rotate-key`, `check-secrets`, `prune-builder`, `df`, `test`, `monitoring-up`, `monitoring-down`, `cache-up`, `verify-redis`.
 - `scripts/` — `rotate_key.sh`, `check_secrets.sh`, `smoke_e2e.sh`.
 - `infra/grafana/` — provisioning datasource Prometheus + dashboard monitoring (opt-in).
 - `docs/ops-postmortem.md` — insiden & pola pemulihan.
@@ -58,6 +58,20 @@ ganti dengan nilai rahasia sebelum mengekspos port ke jaringan lain.
 Matikan: `make monitoring-down` (stack inti tetap jalan). Prometheus men-scrape `/metrics`
 go-backend, python-ml, mcp-gateway, llm-eval-framework, dan rag-api; datasource
 prometheus & dashboard ter-provision otomatis di grafana.
+
+### Redis response cache (opt-in)
+
+```bash
+make cache-up       # Redis + rag-api dengan REDIS_ENABLED=true
+make verify-redis   # bukti cache hit + TTL
+```
+
+Redis tetap opt-in: `.env.example` memakai `REDIS_ENABLED=false`, sehingga `make up`
+biasa menjalankan rag-api tanpa cache. `make cache-up` menyalakan Redis (profil
+`monitoring`) dan me-recreate rag-api dengan `REDIS_ENABLED=true`. `make monitoring-down`
+mematikan Redis; rag-api kembali ke mode cache-disabled secara graceful. `make up`
+berikutnya juga mengembalikan cache ke disabled karena default `.env` tetap `false` —
+jalankan `make cache-up` lagi bila ingin cache aktif.
 
 ## Mode A/B — aturan kepemilikan
 

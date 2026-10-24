@@ -1,4 +1,4 @@
-.PHONY: help up down test test-arxiv test-arxiv-ml test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models rotate-key check-secrets prune-builder df monitoring-up monitoring-down seed-rag backup-postgres backup-qdrant backup-all
+.PHONY: help up down test test-arxiv test-arxiv-ml test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models rotate-key check-secrets prune-builder df monitoring-up monitoring-down cache-up verify-redis seed-rag backup-postgres backup-qdrant backup-all
 
 # Workspace root Makefile for the AI Infrastructure Platform
 #
@@ -54,6 +54,13 @@ monitoring-up:  ## Start monitoring only (redis, prometheus, grafana)
 
 monitoring-down:  ## Stop monitoring only (core stack tetap jalan)
 	$(COMPOSE) --env-file $(ENV_FILE) --profile monitoring stop redis prometheus grafana
+
+cache-up:  ## Start Redis and recreate rag-api with response cache enabled
+	$(COMPOSE) --env-file $(ENV_FILE) --profile monitoring up -d redis
+	REDIS_ENABLED=true $(COMPOSE) --env-file $(ENV_FILE) up -d --no-deps --force-recreate rag-api
+
+verify-redis: cache-up  ## Verify Redis cache hit path end-to-end
+	bash scripts/verify_redis_cache.sh
 
 # ──────────────────────────────────────────────────────────────────────
 # Tests (each project)

@@ -280,6 +280,8 @@ services:
       OLLAMA_HOST: ${OLLAMA_HOST:-http://ollama:11434}
       GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
+      REDIS_ENABLED: ${REDIS_ENABLED:-false}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
     depends_on:
       qdrant:
         condition: service_healthy
