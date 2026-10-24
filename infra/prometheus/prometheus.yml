@@ -26,7 +26,7 @@ scrape_configs:
       - targets: ['llm-eval-framework:8002']
     metrics_path: '/metrics'
 
-  - job_name: 'rag-research'
+  - job_name: 'rag-api'
     static_configs:
       - targets: ['rag-api:8000']
     metrics_path: '/metrics'

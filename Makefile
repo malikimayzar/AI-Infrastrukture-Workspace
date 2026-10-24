@@ -1,4 +1,4 @@
-.PHONY: help up down test test-arxiv test-arxiv-ml test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models rotate-key check-secrets prune-builder df monitoring-up monitoring-down cache-up verify-redis seed-rag backup-postgres backup-qdrant backup-all
+.PHONY: help up down test test-arxiv test-arxiv-ml test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models rotate-key check-secrets prune-builder df monitoring-up monitoring-down cache-up verify-redis verify-monitoring seed-rag backup-postgres backup-qdrant backup-all
 
 # Workspace root Makefile for the AI Infrastructure Platform
 #
@@ -61,6 +61,9 @@ cache-up:  ## Start Redis and recreate rag-api with response cache enabled
 
 verify-redis: cache-up  ## Verify Redis cache hit path end-to-end
 	bash scripts/verify_redis_cache.sh
+
+verify-monitoring:  ## Verify Prometheus targets, p95 data, and Grafana dashboard
+	bash scripts/verify_monitoring.sh
 
 # ──────────────────────────────────────────────────────────────────────
 # Tests (each project)

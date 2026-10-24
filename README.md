@@ -9,7 +9,7 @@ konfigurasinya bukan sumber topologi lintas-repo.
 - `PROJECT_GOALS.md` — spesifikasi rekayasa sistem, kriteria keberhasilan & visi produk.
 - `PROJECT_CONTEXT.md` — batas arsitektur & snapshot runtime ekosistem saat ini.
 - `docker-compose.yml` — topologi lengkap (11 service `ws-*`).
-- `Makefile` — `up`, `down`, `status`, `logs`, `smoke-e2e`, `seed-rag`, `rotate-key`, `check-secrets`, `prune-builder`, `df`, `test`, `monitoring-up`, `monitoring-down`, `cache-up`, `verify-redis`.
+- `Makefile` — `up`, `down`, `status`, `logs`, `smoke-e2e`, `seed-rag`, `rotate-key`, `check-secrets`, `prune-builder`, `df`, `test`, `monitoring-up`, `monitoring-down`, `cache-up`, `verify-redis`, `verify-monitoring`.
 - `scripts/` — `rotate_key.sh`, `check_secrets.sh`, `smoke_e2e.sh`.
 - `infra/grafana/` — provisioning datasource Prometheus + dashboard monitoring (opt-in).
 - `docs/ops-postmortem.md` — insiden & pola pemulihan.
@@ -54,6 +54,10 @@ Port di host: **8090** mcp-gateway, **8080** go-backend arxiv, **8001** python-m
 
 Redis/prometheus/grafana **tidak ikut `make up`** (profil `monitoring`).
 Nyalakan saat butuh: `make monitoring-up` → Prometheus `:9090`, Grafana `:3000`.
+`make verify-monitoring` memeriksa kelima target `up`, `sum(up)=5`, minimal satu
+series p95, dan dashboard `workspace-overview` dengan 5 panel. Verifikasi ini
+membutuhkan minimal satu request (jalankan `make smoke-e2e` lebih dulu) agar
+histogram latency memiliki data.
 Kredensial default Grafana dan kredensial fallback database hanya untuk pengembangan lokal;
 ganti dengan nilai rahasia sebelum mengekspos port ke jaringan lain.
 Matikan: `make monitoring-down` (stack inti tetap jalan). Prometheus men-scrape `/metrics`
