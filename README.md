@@ -41,9 +41,10 @@ make smoke-e2e                # alur: ingest → query /ask → verifikasi query
 ```
 
 Smoke test adalah pemeriksaan integrasi dasar, bukan evaluasi kualitas jawaban atau
-acceptance produksi. Pemeriksaan log ArXiv saat ini mencari teks query tetap sehingga
-baris dari run sebelumnya dapat ikut terhitung; lihat batasan ini sebelum memakai
-hasil smoke sebagai bukti eksekusi terbaru.
+acceptance produksi. Setiap run memakai `RUN_ID` unik, header `X-Request-ID`, dan
+query unik; verifikasi mengikat baris baru di `gateway_query_logs` (per request ID)
+dan `query_logs` (per query), sehingga baris dari run lama tidak dapat meloloskan
+pemeriksaan.
 
 Port di host: **8090** mcp-gateway, **8080** go-backend arxiv, **8001** python-ml, **8002** llm-eval,
 **8000** rag-api, **11435** ollama (11434 = daemon host), **5432** postgres, **6333/6334** qdrant,

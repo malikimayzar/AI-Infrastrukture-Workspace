@@ -30,6 +30,17 @@ PG_PASSWORD="${PG_PASSWORD:-arxiv_secret}"
 PG_DB="${PG_DB:-arxiv_db}"
 TEST_ARXIV_ID="${TEST_ARXIV_ID:-2312.10997}"
 
+RUN_ID="${SMOKE_RUN_ID:-$(date -u +%Y%m%dT%H%M%SZ)-$$}"
+GATEWAY_REQUEST_ID="smoke-$RUN_ID"
+GATEWAY_REQUEST_ID_RAG="smoke-rag-$RUN_ID"
+ARXIV_QUERY="What is this paper about? [smoke:$RUN_ID]"
+RAG_QUERY="How does RAG combine retrieval with generation? [smoke:$RUN_ID]"
+
+if ! [[ "$RUN_ID" =~ ^[A-Za-z0-9._-]+$ ]]; then
+  echo "[smoke ERROR] SMOKE_RUN_ID contains unsafe characters" >&2
+  exit 1
+fi
+
 WAIT_TIMEOUT="${WAIT_TIMEOUT:-120}"  # seconds
 POLL_INTERVAL="${POLL_INTERVAL:-5}"
 
@@ -50,6 +61,31 @@ wait_for() {
     fi
   done
   log "$name is healthy"
+}
+
+# psql may be absent on the host — fall back to the postgres container's own client.
+run_psql() {
+  if command -v psql >/dev/null 2>&1; then
+    PGPASSWORD="$PG_PASSWORD" psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" -t -A -c "$1"
+  else
+    docker exec ws-postgres psql -U "$PG_USER" -d "$PG_DB" -t -A -c "$1"
+  fi
+}
+
+wait_for_count() {
+  local sql="$1" expected="$2" label="$3"
+  local deadline=$((SECONDS + 20))
+  local count=0
+  while [ "$SECONDS" -lt "$deadline" ]; do
+    count=$(run_psql "$sql") || err "psql failed for $label (run $RUN_ID)"
+    count=$(printf '%s' "$count" | tr -d '[:space:]')
+    if [ "${count:-0}" -ge "$expected" ] 2>/dev/null; then
+      log "$label: $count row(s) ✓"
+      return 0
+    fi
+    sleep 1
+  done
+  err "$label: expected >=$expected row(s), got ${count:-unknown} (run $RUN_ID)"
 }
 
 # ── Step 1: Wait for services ──────────────────────────────────────────
@@ -85,15 +121,12 @@ sleep 5
 
 log "Step 3: Querying via mcp-gateway (backend: arxiv)"
 
-# Generate unique request ID for this smoke test run
-REQUEST_ID="smoke-$(date +%Y%m%d-%H%M%S)-$$"
-UNIQUE_QUERY="What is this paper about? [Request ID: $REQUEST_ID]"
-
 QUERY_RESPONSE=""
 for attempt in 1 2; do
   CANDIDATE=$(curl -sf --max-time 300 -X POST "$GATEWAY_URL/ask" \
     -H "Content-Type: application/json" \
-    -d "{\"backend\": \"arxiv\", \"query\": \"$UNIQUE_QUERY\", \"top_k\": 5, \"request_id\": \"$REQUEST_ID\"}" 2>&1) || CANDIDATE=""
+    -H "X-Request-ID: $GATEWAY_REQUEST_ID" \
+    -d "{\"backend\": \"arxiv\", \"query\": \"$ARXIV_QUERY\", \"top_k\": 5}" 2>&1) || CANDIDATE=""
   if [ -n "$CANDIDATE" ]; then
     QUERY_RESPONSE="$CANDIDATE"
     break
@@ -121,7 +154,12 @@ if [ "$BACKEND" != "arxiv" ]; then
   err "Expected backend=arxiv, got $BACKEND"
 fi
 
-log "Answer received from backend=$BACKEND (length: ${#ANSWER} chars)"
+RESPONSE_REQUEST_ID=$(echo "$QUERY_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('request_id',''))" 2>/dev/null) \
+  || err "Failed to parse request_id from response"
+[ "$RESPONSE_REQUEST_ID" = "$GATEWAY_REQUEST_ID" ] \
+  || err "gateway request_id mismatch: $RESPONSE_REQUEST_ID (run $RUN_ID)"
+
+log "Answer received from backend=$BACKEND (length: ${#ANSWER} chars, request_id=$RESPONSE_REQUEST_ID)"
 
 # ── Step 3b: research_rag contract check ───────────────────────────────
 
@@ -135,7 +173,8 @@ RAG_RESPONSE=""
 for attempt in 1 2; do
   RAG_RESPONSE=$(curl -sf --max-time 120 -X POST "$GATEWAY_URL/ask" \
     -H "Content-Type: application/json" \
-    -d '{"backend": "research_rag", "query": "How does RAG combine retrieval with generation?", "top_k": 3}' 2>&1) || RAG_RESPONSE=""
+    -H "X-Request-ID: $GATEWAY_REQUEST_ID_RAG" \
+    -d "{\"backend\": \"research_rag\", \"query\": \"$RAG_QUERY\", \"top_k\": 3}" 2>&1) || RAG_RESPONSE=""
   if [ -n "$RAG_RESPONSE" ]; then
     break
   fi
@@ -166,29 +205,37 @@ case "$RAG_EVAL" in
   *) err "research_rag: unknown evaluation_status '$RAG_EVAL'" ;;
 esac
 
-# ── Step 4: Verify query log in PostgreSQL ─────────────────────────────
+RAG_RESPONSE_REQUEST_ID=$(echo "$RAG_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('request_id',''))" 2>/dev/null) \
+  || err "Failed to parse request_id from research_rag response"
+[ "$RAG_RESPONSE_REQUEST_ID" = "$GATEWAY_REQUEST_ID_RAG" ] \
+  || err "gateway rag request_id mismatch: $RAG_RESPONSE_REQUEST_ID (run $RUN_ID)"
 
-log "Step 4: Verifying query log in PostgreSQL"
+# ── Step 4: Verify query logs in PostgreSQL ────────────────────────────
 
-# psql may be absent on the host — fall back to the postgres container's own client.
-run_psql() {
-  if command -v psql >/dev/null 2>&1; then
-    PGPASSWORD="$PG_PASSWORD" psql -h "$PG_HOST" -p "$PG_PORT" -U "$PG_USER" -d "$PG_DB" -t -A -c "$1"
-  else
-    docker exec ws-postgres psql -U "$PG_USER" -d "$PG_DB" -t -A -c "$1"
-  fi
-}
+log "Step 4: Verifying query logs in PostgreSQL"
 
-# Check query log by request_id pattern in query text
-# Use the unique request_id to ensure we're checking the current run, not old runs
-LOG_COUNT=$(run_psql "SELECT COUNT(*) FROM query_logs WHERE query LIKE '%Request ID: $REQUEST_ID%';") \
-  || err "Failed to query PostgreSQL"
+wait_for_count \
+  "SELECT COUNT(*) FROM gateway_query_logs WHERE request_id = '$GATEWAY_REQUEST_ID' AND backend = 'arxiv';" \
+  1 "gateway arxiv log"
 
-if [ "$LOG_COUNT" -lt 1 ]; then
-  err "No query log found in PostgreSQL (count=$LOG_COUNT)"
-fi
+wait_for_count \
+  "SELECT COUNT(*) FROM gateway_query_logs WHERE request_id = '$GATEWAY_REQUEST_ID_RAG' AND backend = 'research_rag';" \
+  1 "gateway rag log"
 
-log "Query log found in PostgreSQL (count=$LOG_COUNT)"
+wait_for_count \
+  "SELECT COUNT(*) FROM query_logs WHERE query = '$ARXIV_QUERY';" \
+  1 "arxiv backend query log"
+
+for pair in "arxiv:$GATEWAY_REQUEST_ID" "research_rag:$GATEWAY_REQUEST_ID_RAG"; do
+  backend="${pair%%:*}"
+  rid="${pair#*:}"
+  exact=$(run_psql "SELECT COUNT(*) FROM gateway_query_logs WHERE request_id = '$rid' AND backend = '$backend';") \
+    || err "psql failed for gateway $backend log (run $RUN_ID)"
+  exact=$(printf '%s' "$exact" | tr -d '[:space:]')
+  [ "${exact:-0}" -eq 1 ] || err "gateway $backend log: expected exactly 1 row, got ${exact:-unknown} (run $RUN_ID)"
+done
+
+log "Query logs verified for run $RUN_ID"
 
 # ── Done ───────────────────────────────────────────────────────────────
 
@@ -196,10 +243,12 @@ log ""
 log "=============================================="
 log "  SMOKE TEST PASSED"
 log "=============================================="
-log "  Request ID:    $REQUEST_ID"
+log "  RUN_ID:        $RUN_ID"
+log "  Request ID:    $GATEWAY_REQUEST_ID (arxiv)"
+log "  Request ID:    $GATEWAY_REQUEST_ID_RAG (rag)"
 log "  Ingested:     $TEST_ARXIV_ID"
 log "  Query backend: $BACKEND"
 log "  Answer length: ${#ANSWER} chars"
 log "  RAG contract:  decision=$RAG_DECISION eval=$RAG_EVAL"
-log "  Query logs:    $LOG_COUNT row(s)"
+log "  Query logs:    gateway + arxiv rows verified"
 log "=============================================="
