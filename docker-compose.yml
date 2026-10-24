@@ -124,6 +124,8 @@ services:
     <<: *dns-map
     ports:
       - "8001:8001"
+    volumes:
+      - ./rag-research/hf-cache:/app/hf-cache:ro
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -139,6 +141,7 @@ services:
       LLM_PROVIDER: ${LLM_PROVIDER:-groq}
       # The full MiniLM snapshot (shared with rag-research) is mounted read-only,
       # so the embedder never needs outbound DNS.
+      HF_HOME: /app/hf-cache
       HF_HUB_OFFLINE: "1"
       GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
