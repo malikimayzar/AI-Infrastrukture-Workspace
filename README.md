@@ -10,8 +10,9 @@ konfigurasinya bukan sumber topologi lintas-repo.
 - `PROJECT_CONTEXT.md` — batas arsitektur & snapshot runtime ekosistem saat ini.
 - `docker-compose.yml` — topologi lengkap (11 service `ws-*`).
 - `Makefile` — `up`, `down`, `status`, `logs`, `smoke-e2e`, `seed-rag`, `rotate-key`, `check-secrets`, `prune-builder`, `df`, `test`, `monitoring-up`, `monitoring-down`, `cache-up`, `verify-redis`, `verify-monitoring`.
-- `scripts/` — `rotate_key.sh`, `check_secrets.sh`, `smoke_e2e.sh`.
+- `scripts/` — `rotate_key.sh`, `check_secrets.sh`, `smoke_e2e.sh`, `verify_redis_cache.sh`, `verify_monitoring.sh`.
 - `infra/grafana/` — provisioning datasource Prometheus + dashboard monitoring (opt-in).
+- `docs/acceptance/phase-2-verification.md` — bukti gate operasional Fase 2 (2026-10-24).
 - `docs/ops-postmortem.md` — insiden & pola pemulihan.
 - Submodul: `arxiv-research-assistant`, `mcp-gateway`, `rag-research`, `llm-eval-framework`.
 
@@ -38,7 +39,12 @@ dan indeksnya terpisah.
 cp .env.example .env          # isi GROQ_API_KEY
 make up
 make smoke-e2e                # alur: ingest → query /ask → verifikasi query_logs di DB
+make verify-redis             # opt-in: cache_hit false→true + TTL
+make monitoring-up && make verify-monitoring
 ```
+
+Gate operasional Fase 2 beserta output aktualnya dicatat di
+`docs/acceptance/phase-2-verification.md`.
 
 Smoke test adalah pemeriksaan integrasi dasar, bukan evaluasi kualitas jawaban atau
 acceptance produksi. Setiap run memakai `RUN_ID` unik, header `X-Request-ID`, dan
