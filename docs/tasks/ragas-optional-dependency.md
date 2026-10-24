@@ -1,9 +1,13 @@
-# Tugas: Selesaikan 8 kegagalan test `rag-research` (dependensi opsional `ragas`)
+# Arsip Tugas: Perbaikan dependensi opsional `ragas` di `rag-research`
 
-**Repo:** `rag-research` (submodule)  
-**Branch:** `ai/ragas-optional`  
-**Owner:** Aider  
-**Timebox:** 90 menit  
+> **Status:** Selesai menurut `docs/ai-taskboard.md` pada 2026-10-22
+> (419 passed, 1 skipped). Dokumen ini mempertahankan brief dan prosedur historis;
+> bukan tugas aktif. Buka kembali hanya jika kegagalan dependensi yang sama muncul lagi.
+
+**Repo:** `rag-research` (submodule)
+**Branch:** `ai/ragas-optional`
+**Owner:** Aider
+**Timebox:** 90 menit
 **Integrator:** OpenCode (review + gate akhir + push)
 
 ---

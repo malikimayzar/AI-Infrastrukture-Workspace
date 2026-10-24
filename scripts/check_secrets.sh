@@ -1,95 +1,76 @@
 #!/usr/bin/env bash
-# scripts/check_secrets.sh — sweep rahasia yang bocor (kotak TODO P0 §4).
-#
-# Memeriksa, berurutan:
-#   A. Prefiks kunci yang diketahui kompromi (riwayat insiden workspace ini —
-#      keduanya pernah menyentuh working tree dan WAJIB dianggap terbakar).
-#   B. Pola kunci Groq generik `gsk_` + ≥30 alnum di SEMUA file yang di-track
-#      (root repo + 4 submodule — mereka adalah repos git terpisah).
-#   C. `GROQ_API_KEY=` di setiap `*.env.example` yang di-track hanya boleh
-#      berupa placeholder ("your"/"placeholder"/kosong), bukan nil asli.
-#
-# Catatan desain: file untracked (mis. `.env`) TIDAK ikut di-scan — memang
-# itu satu-satunya rumah kunci yang diizinkan, dan git-ignored.
-#
-# Keluar: 0 = bersih, 1 = ditemukan kebocoran (sinkron untuk CI nanti).
-set -uo pipefail
+# Scan tracked files in the workspace and its submodules for credential leaks.
+# Untracked local .env files are intentionally excluded.
+set -euo pipefail
 
-leak=0
 repos=(. arxiv-research-assistant mcp-gateway rag-research llm-eval-framework)
-
-echo "── [A] Prefiks kunci yang diketahui kompromi (terpotong, bukan utuh)"
-# Dulu kedua kunci disimpan UTUH di sini — ironi "file pembersih berisi rahasia"
-# yang membuat scanner menandai dirinya sendiri. Sekarang cukup prefiks panjang
-# (~16 char, tidak bisa verifikasi/pakai); file ini dikecualikan dari pencarian.
-for k in \
-  gsk_Ud7hTCDlhDS26xX \
-  gsk_BGTGwh89Z2GesV
-do
-  hit=$(git grep -n "$k" -- . ':(exclude)scripts/check_secrets.sh' 2>/dev/null || true)
-  for r in "${repos[@]}"; do
-    [ "$r" != "." ] || continue
-    hit="$hit
-$(git -C "$r" grep -n "$k" -- . 2>/dev/null | sed "s|^|$r/|" || true)"
-  done
-  if [ -n "$(echo "$hit" | tr -d '[:space:]')" ]; then
-    echo "$hit" | grep -v '^$' | sed 's/^/   ❌ /'
-    echo "   ❌ KUNCI KOMPROMI MASIH ADA DI GIT — revoke + hapus dari file + history!"
-    leak=1
-  fi
-done
-[ "$leak" = "0" ] && echo "   ✓ bersih"
-
-echo "── [B] Pola generik gsk_<30+alnum> di file yang di-track"
+leak=0
 pat='gsk_[A-Za-z0-9]{30,}'
-for r in "${repos[@]}"; do
-  if [ "$r" = "." ]; then
-    found=$(git ls-files -z | xargs -0 -r grep -lE "$pat" -I 2>/dev/null || true)
-  else
-    [ -d "$r/.git" ] || continue
-    found=$(git -C "$r" ls-files -z | xargs -0 -r grep -lE "$pat" -I 2>/dev/null || true)
-  fi
-  if [ -n "$found" ]; then
-    printf '%s\n' "$found" | while IFS= read -r f; do
-      echo "   ❌ $r/$f"
-      grep -nE "$pat" -I "$f" 2>/dev/null |
-        sed 's/gsk_[A-Za-z0-9]\{6\}[A-Za-z0-9]*/gsk_****REDACTED****/g' | head -3
+
+echo "── [A] Known compromised key prefixes"
+known_prefixes=(
+  'gsk_Ud7hTCDlhDS26xX'
+  'gsk_BGTGwh89Z2GesV'
+)
+for repo in "${repos[@]}"; do
+  git -C "$repo" rev-parse --is-inside-work-tree >/dev/null 2>&1 || continue
+  for prefix in "${known_prefixes[@]}"; do
+    if [ "$repo" = "." ]; then
+      found=$(git -C "$repo" grep -lF "$prefix" -- . ':(exclude)scripts/check_secrets.sh' 2>/dev/null || true)
+    else
+      found=$(git -C "$repo" grep -lF "$prefix" -- . 2>/dev/null || true)
+    fi
+    if [ -n "$found" ]; then
+      while IFS= read -r file; do
+        [ -n "$file" ] || continue
+        printf '   ❌ %s/%s contains a known compromised prefix\n' "$repo" "$file"
+      done <<< "$found"
+      leak=1
+    fi
+  done
+done
+[ "$leak" -eq 0 ] && echo "   ✓ no known compromised prefixes"
+
+echo "── [B] Generic Groq key pattern in tracked files"
+for repo in "${repos[@]}"; do
+  git -C "$repo" rev-parse --is-inside-work-tree >/dev/null 2>&1 || continue
+  mapfile -d '' -t found < <(git -C "$repo" grep -IlzE "$pat" -- . 2>/dev/null || true)
+  if [ "${#found[@]}" -gt 0 ]; then
+    for file in "${found[@]}"; do
+      printf '   ❌ %s/%s contains a key-shaped value (value hidden)\n' "$repo" "$file"
     done
     leak=1
   fi
 done
-[ "$leak" = "0" ] && echo "   ✓ bersih"
+[ "$leak" -eq 0 ] && echo "   ✓ no key-shaped values"
 
-echo "── [C] *.env.example hanya boleh placeholder"
-placeholders=$(git ls-files '**/.env.example' '*.env.example' 2>/dev/null || true)
-for r in "${repos[@]}"; do
-  [ "$r" != "." ] || continue
-  [ -d "$r/.git" ] || continue
-  p=$(git -C "$r" ls-files '**/.env.example' '*.env.example' 2>/dev/null | sed "s|^|$r/|" || true)
-  if [ -n "$p" ]; then
-    placeholders="${placeholders:+$placeholders$'\n'}$p"
-  fi
-done
-if [ -z "$placeholders" ]; then
-  echo "   ⚠️  tidak ada *.env.example yang di-track"
-else
-  while IFS= read -r f; do
-    [ -n "$f" ] || continue
-    val=$(grep -E '^GROQ_API_KEY=' "$f" 2>/dev/null | head -1 | cut -d= -f2-)
-    case "$val" in
-      *your*|*YOUR*|*placeholder*|*PLACEHOLDER*|"")
-        echo "   ✓ $f ($(echo "${val:-empty}" | cut -c1-24))";;
+echo "── [C] GROQ_API_KEY in tracked *.env.example files"
+for repo in "${repos[@]}"; do
+  git -C "$repo" rev-parse --is-inside-work-tree >/dev/null 2>&1 || continue
+  mapfile -d '' -t examples < <(
+    git -C "$repo" ls-files -z -- '*.env.example' '**/*.env.example' 2>/dev/null || true
+  )
+  for file in "${examples[@]}"; do
+    [ -n "$file" ] || continue
+    path="$repo/$file"
+    value=$(sed -n 's/^GROQ_API_KEY=//p' "$path" 2>/dev/null | head -n 1 || true)
+    normalized=$(printf '%s' "$value" | tr '[:upper:]' '[:lower:]')
+    case "$normalized" in
+      ""|*your*|*placeholder*|*changeme*|*change_me*)
+        printf '   ✓ %s uses a placeholder\n' "$path"
+        ;;
       *)
-        echo "   ❌ $f memuat nilai asli → WAJIB di-placeholder"
-        leak=1;;
+        printf '   ❌ %s must use a placeholder (value hidden)\n' "$path"
+        leak=1
+        ;;
     esac
-  done <<< "$placeholders"
-fi
+  done
+done
 
 echo "──────"
-if [ "$leak" = "0" ]; then
-  echo "✅ CLEAN — tidak ada rahasia di file yang di-track"
+if [ "$leak" -eq 0 ]; then
+  echo "✅ CLEAN — no tracked credential leaks found"
   exit 0
 fi
-echo "❌ LEAK DITEMUKAN ($leak) — putar/revoke kunci sebelum di-commit"
+echo "❌ LEAK FOUND — revoke exposed keys and replace values before committing"
 exit 1

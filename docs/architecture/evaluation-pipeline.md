@@ -1,7 +1,7 @@
 # Technical Architecture: Non-LLM Judge Evaluation Pipeline
 
-> **Module:** `llm-eval-framework`  
-> **Status:** Production / Deterministic Verification Layer  
+> **Module:** `llm-eval-framework`
+> **Status:** Implemented diagnostic evaluator; not a correctness oracle or calibrated production gate
 
 ---
 
@@ -9,11 +9,16 @@
 
 Traditional RAG evaluation often relies on "LLM-as-a-judge" approaches (asking another powerful LLM if an answer is faithful to the source). However, this introduces circular dependencies, high latency, API costs, and non-deterministic scoring.
 
-`llm-eval-framework` implements a **deterministic, non-LLM judge architecture** centered around:
+`llm-eval-framework` implements a **non-LLM-judge diagnostic architecture** centered around:
 1. **Claim Extraction & Enumeration Expansion**: Breaking down compound sentences and enumerated lists into atomic claims.
 2. **Semantic & Lexical Evidence Matching**: Measuring factual grounding using embedding cosine similarity (`nomic-embed-text` via Ollama) combined with ROUGE-L overlap.
 3. **Technical Conflict Detection**: Overriding high embedding scores when specific technical discrepancies occur (e.g., confusing `PUT` vs `PATCH` HTTP methods).
 4. **False Insufficient Context Detection**: Detecting when an LLM refuses to answer ("INSUFFICIENT_CONTEXT") despite clear supporting evidence being present in the source text.
+
+The evaluator uses semantic and lexical heuristics. Its score measures support
+under this method; it does not prove factual correctness, guarantee zero
+hallucinations, or establish calibrated confidence. Thresholds and model versions
+must accompany any reported result.
 
 ---
 
