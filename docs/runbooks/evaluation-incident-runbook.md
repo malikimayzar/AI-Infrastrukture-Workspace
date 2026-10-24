@@ -1,17 +1,17 @@
 # Operational Runbook: Evaluation Service Incidents & Troubleshooting
 
-> **Scope:** `llm-eval-framework` & FastAPI Evaluation API (`api.py`)  
-> **Audience:** DevOps, ML Engineers, On-Call Operators  
+> **Scope:** `llm-eval-framework` & FastAPI Evaluation API (`api.py`)
+> **Audience:** DevOps, ML Engineers, On-Call Operators
 
 ---
 
 ## 1. Common Incident Scenarios
 
 ### Scenario A: Ollama Service Timeout or Connection Refused
-* **Symptoms:** 
+* **Symptoms:**
   - Evaluation pipeline hangs or throws `requests.exceptions.ConnectionError`.
   - FastAPI `/evaluate` endpoint returns `503 Service Unavailable`.
-* **Root Cause:** 
+* **Root Cause:**
   - Ollama is unreachable from the evaluator container, or the `nomic-embed-text` embedding model is unavailable. The HTTP evaluator uses embeddings; generation models are used by the offline pipeline.
 * **Resolution Steps:**
   1. In the workspace Compose deployment, check the Ollama service from the evaluator network (`http://ollama:11434`); host `localhost` is not the container address.
@@ -19,9 +19,9 @@
   3. Pull `nomic-embed-text` into the Ollama instance used by the evaluator. Pull `mistral` or `phi3:mini` only when running the offline generation pipeline.
 
 ### Scenario B: FastAPI `/evaluate` Returns Validation Error (`422 Unprocessable Entity`)
-* **Symptoms:** 
+* **Symptoms:**
   - Downstream services (`mcp-gateway`) receive 422 errors when invoking evaluation.
-* **Root Cause:** 
+* **Root Cause:**
   - Malformed JSON payload missing required keys (`question`, `answer`, `context`).
 * **Resolution Steps:**
   1. Verify the request payload matches the canonical contract:
@@ -35,9 +35,9 @@
   2. Inspect FastAPI logs or run unit tests: `pytest llm-eval-framework/tests/test_api.py`.
 
 ### Scenario C: Provenance Drift Error (`make verify` fails)
-* **Symptoms:** 
+* **Symptoms:**
   - CI pipeline or `make verify` fails with a drift warning.
-* **Root Cause:** 
+* **Root Cause:**
   - `config.yaml` was modified after evaluation artifacts were generated, or git repository is dirty.
 * **Resolution Steps:**
   1. Re-run evaluation pipeline: `make eval`.

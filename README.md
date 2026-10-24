@@ -23,7 +23,7 @@ mcp-gateway :8090 ─┬─ ARXIV_SERVICE_URL → arxiv-go-backend :8080
                    ├─ EVAL_SERVICE_URL  → llm-eval-framework :8002 (evaluator lokal via ollama)
                    └─ RAG_SERVICE_URL   → rag-api :8000
 semua service → qdrant :6333 / ollama :11434 / postgres :5432
-GROQ_MODEL = openai/gpt-oss-20b  (satu nilai di semua titik)
+GROQ_MODEL = openai/gpt-oss-20b  (untuk python-ml dan rag-api)
 ```
 
 Gateway saat ini menyediakan HTTP/JSON (`/ask`, `/plan`, `/tool`). Dukungan wire

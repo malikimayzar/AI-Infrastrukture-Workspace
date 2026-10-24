@@ -29,6 +29,12 @@ logs/
 .coverage
 results/
 
+# Backups
+backups/
+
 # Environment
 .env
 .aider*
+
+# Pre-commit
+.pre-commit-cache/

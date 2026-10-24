@@ -1,7 +1,7 @@
 # AI INFRASTRUCTURE PLATFORM — ENGINEERING GOALS & PRODUCTION SPEC
-> **Project Title:** Scientific Claim & Prior-Art Auditor (Autonomous Research Grounding & Audit Engine)  
-> **Workspace:** `ai-infra-workspace` (Orchestrating `arxiv-research-assistant`, `mcp-gateway`, `rag-research`, `llm-eval-framework`)  
-> **Version:** 1.0.0  
+> **Project Title:** Scientific Claim & Prior-Art Auditor (Autonomous Research Grounding & Audit Engine)
+> **Workspace:** `ai-infra-workspace` (Orchestrating `arxiv-research-assistant`, `mcp-gateway`, `rag-research`, `llm-eval-framework`)
+> **Version:** 1.0.0
 > **Status:** Fase 1 harmonisasi tercatat selesai; Fase 2 masih berjalan karena Redis dan monitoring runtime belum diverifikasi.
 > **Last Updated:** 2026-10-22
 
@@ -9,7 +9,7 @@
 
 ## CORE PRINCIPLE
 
-> **"If evidence is insufficient, refusing to answer is correct engineering. Grounded truth supersedes fluent speculation."**  
+> **"If evidence is insufficient, refusing to answer is correct engineering. Grounded truth supersedes fluent speculation."**
 > Kami tidak membangun chatbot percakapan umum (*commodity chat-with-PDF*). Kami membangun **mesin audit ilmiah deterministik** yang mengutamakan ketertelusuran bukti kalimat-per-kalimat (*span-level attribution*), penolakan halusinasi (*hard abstention*), dan evaluasi tanpa bias (*zero LLM-as-judge*).
 
 ---
@@ -49,7 +49,7 @@ Sebuah platform perangkat lunak B2B berstandar *mission-critical* untuk tim R&D,
 ┌────────────────────────────────────────────────────────────────────────┐
 │               mcp-gateway (:8090) — Orkestrator & Gerbang              │
 │  - Verifikasi Request & Rate Limiter                                   │
-│  - Perencana Langkah (Groq Model Planner dengan Deterministic Fallback) │
+│  - Perencana Langkah deterministik per backend                           │
 │  - Penjejak Audit Tracing & Asynchronous Logging                       │
 └───────┬───────────────────────────┬────────────────────────────┬───────┘
         │                           │                            │

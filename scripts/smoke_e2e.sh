@@ -85,11 +85,15 @@ sleep 5
 
 log "Step 3: Querying via mcp-gateway (backend: arxiv)"
 
+# Generate unique request ID for this smoke test run
+REQUEST_ID="smoke-$(date +%Y%m%d-%H%M%S)-$$"
+UNIQUE_QUERY="What is this paper about? [Request ID: $REQUEST_ID]"
+
 QUERY_RESPONSE=""
 for attempt in 1 2; do
   CANDIDATE=$(curl -sf --max-time 300 -X POST "$GATEWAY_URL/ask" \
     -H "Content-Type: application/json" \
-    -d "{\"backend\": \"arxiv\", \"query\": \"What is this paper about?\", \"top_k\": 5}" 2>&1) || CANDIDATE=""
+    -d "{\"backend\": \"arxiv\", \"query\": \"$UNIQUE_QUERY\", \"top_k\": 5, \"request_id\": \"$REQUEST_ID\"}" 2>&1) || CANDIDATE=""
   if [ -n "$CANDIDATE" ]; then
     QUERY_RESPONSE="$CANDIDATE"
     break
@@ -175,7 +179,9 @@ run_psql() {
   fi
 }
 
-LOG_COUNT=$(run_psql "SELECT COUNT(*) FROM query_logs WHERE query = 'What is this paper about?';") \
+# Check query log by request_id pattern in query text
+# Use the unique request_id to ensure we're checking the current run, not old runs
+LOG_COUNT=$(run_psql "SELECT COUNT(*) FROM query_logs WHERE query LIKE '%Request ID: $REQUEST_ID%';") \
   || err "Failed to query PostgreSQL"
 
 if [ "$LOG_COUNT" -lt 1 ]; then
@@ -190,6 +196,7 @@ log ""
 log "=============================================="
 log "  SMOKE TEST PASSED"
 log "=============================================="
+log "  Request ID:    $REQUEST_ID"
 log "  Ingested:     $TEST_ARXIV_ID"
 log "  Query backend: $BACKEND"
 log "  Answer length: ${#ANSWER} chars"

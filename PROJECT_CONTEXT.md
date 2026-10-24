@@ -1,7 +1,7 @@
 # PROJECT CONTEXT — AI Infrastructure Platform
-> **Workspace:** `ai-infra-workspace`  
+> **Workspace:** `ai-infra-workspace`
 > **Runtime Snapshot:** 2026-10-22
-> **Target Product:** Scientific Claim & Prior-Art Auditor Platform  
+> **Target Product:** Scientific Claim & Prior-Art Auditor Platform
 
 ---
 
@@ -18,7 +18,7 @@ semua service     → qdrant :6333 / ollama :11434 (internal) / postgres :5432
 host mengakses Ollama container melalui :11435
 ```
 
-* **Model Orkestrator & Generasi Utama:** Groq `openai/gpt-oss-20b` (seragam di semua titik lewat `.env` root).
+* **Model generasi backend:** Groq `openai/gpt-oss-20b` untuk layanan `python-ml` dan `rag-api` (dikonfigurasi melalui `.env` root). `mcp-gateway` memakai rencana backend deterministik dan tidak memanggil Groq untuk memilih tool.
 * **Model LLM Lokal (Opsional/Demo):** Ollama `phi3:mini` (port container `11434` dipetakan ke host `11435` untuk menghindari bentrok dengan daemon host).
 * **Model Embedding Baku:** `sentence-transformers/all-MiniLM-L6-v2` (vektor 384 dimensi, cache di-mount read-only dengan `HF_HUB_OFFLINE=1`).
 

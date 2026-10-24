@@ -4,10 +4,10 @@
 > (419 passed, 1 skipped). Dokumen ini mempertahankan brief dan prosedur historis;
 > bukan tugas aktif. Buka kembali hanya jika kegagalan dependensi yang sama muncul lagi.
 
-**Repo:** `rag-research` (submodule)  
-**Branch:** `ai/ragas-optional`  
-**Owner:** Aider  
-**Timebox:** 90 menit  
+**Repo:** `rag-research` (submodule)
+**Branch:** `ai/ragas-optional`
+**Owner:** Aider
+**Timebox:** 90 menit
 **Integrator:** OpenCode (review + gate akhir + push)
 
 ---

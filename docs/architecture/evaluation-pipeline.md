@@ -1,6 +1,6 @@
 # Technical Architecture: Non-LLM Judge Evaluation Pipeline
 
-> **Module:** `llm-eval-framework`  
+> **Module:** `llm-eval-framework`
 > **Status:** Implemented diagnostic evaluator; not a correctness oracle or calibrated production gate
 
 ---

@@ -1,4 +1,4 @@
-.PHONY: help up down test test-arxiv test-arxiv-ml test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models rotate-key check-secrets prune-builder df monitoring-up monitoring-down seed-rag
+.PHONY: help up down test test-arxiv test-arxiv-ml test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models rotate-key check-secrets prune-builder df monitoring-up monitoring-down seed-rag backup-postgres backup-qdrant backup-all
 
 # Workspace root Makefile for the AI Infrastructure Platform
 #
@@ -119,6 +119,19 @@ seed-rag:  ## Seed RAG research corpus and Qdrant index idempotently
 	cd rag-research && $(PYTHON) -m src.ingestion.document_loader
 	cd rag-research && $(PYTHON) -m src.ingestion.semantic_chunker
 	cd rag-research && $(PYTHON) -m src.retrieval.qdrant_store
+
+# ──────────────────────────────────────────────────────────────────────
+# Backup & Restore
+# ──────────────────────────────────────────────────────────────────────
+
+backup-postgres:  ## Backup PostgreSQL database to local backups/ directory
+	@bash scripts/backup_postgres.sh --local
+
+backup-qdrant:  ## Backup Qdrant vector database to local backups/ directory
+	@bash scripts/backup_qdrant.sh --local
+
+backup-all:  ## Backup all databases (PostgreSQL + Qdrant)
+	@bash scripts/backup_all.sh --local
 
 # ──────────────────────────────────────────────────────────────────────
 # Project sub-make (delegate to project Makefiles)
