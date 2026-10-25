@@ -245,10 +245,17 @@ Gateway dan Engine RAG menetapkan 3 zona keyakinan:
 * [x] **Smoke Fresh-Run:** `make smoke-e2e` memakai `RUN_ID` unik, header `X-Request-ID`, dan query unik; verifikasi mengikat baris baru di `gateway_query_logs` dan `query_logs` sehingga hasil run lama tidak dapat memenuhi assertion.
 * [x] **Readiness per Kapabilitas:** Gateway `/ready` melaporkan `answers`, `arxiv`, `research_rag`, dan `evaluation` secara terpisah; probe evaluator memakai `/ready` (embedding) dan bukan sekadar liveness proses.
 
-### 🔵 Fase 3 — Standarisasi Protokol Wire MCP (Model Context Protocol)
-* [ ] Mengembangkan gateway dari HTTP REST biasa ke implementasi resmi **MCP JSON-RPC 2.0 (stdio / SSE transport)**.
-* [ ] Mendaftarkan tools: `search_scientific_literature`, `verify_factual_claim`, dan `generate_audit_dossier`.
+### 🔵 Fase 3 — Standarisasi Protokol Wire MCP (Model Context Protocol) (Dalam Progress — 2026-10-24)
+* [x] Mengembangkan gateway dari HTTP REST biasa ke implementasi resmi **MCP JSON-RPC 2.0 (HTTP transport)**.
+* [x] Mendaftarkan tools: `search_scientific_literature`, `verify_factual_claim`, dan `generate_audit_dossier`.
+* [x] Implement handshake initialize/initialized, tools/list, tools/call.
+* [x] Add request body size limit (1 MiB) untuk DoS prevention.
+* [x] Implement trace ID propagation (X-Request-ID header).
+* [x] Fix HTTP status code mapping untuk error responses.
+* [x] Fix tool response format (JSON serialization).
 * [ ] Uji coba interoperabilitas langsung dengan klien eksternal seperti Claude Desktop dan ekstensi IDE Cursor.
+* [ ] stdio adapter untuk Claude Desktop compatibility.
+* [ ] SSE (Server-Sent Events) untuk streaming responses.
 
 ### 🟣 Fase 4 — Antarmuka Audit Klaim & Pelaporan Formal (*Claim Dossier UI*)
 * [ ] Mengubah tampilan UI dari sekadar jendela chat biasa menjadi **Tampilan Audit Dua Sisi (Side-by-Side Claim Audit)**.
