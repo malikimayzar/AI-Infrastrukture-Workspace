@@ -378,28 +378,11 @@ curl http://localhost:8000/health    # rag-api
 
 ## 9. Roadmap Context
 
-### Phase 1 — Workspace Harmonization (COMPLETED ✅)
-- Canonical topology in root docker-compose.yml
-- Key rotation scripts & secret audit
-- Dockerfile cleanup (rag-api: 11.9 GB → 3.89 GB)
-- Test suite alignment
-- Git submodule sync
+> **Source of Truth:** [`docs/ROADMAP.md`](docs/ROADMAP.md) — single consolidated roadmap.
 
-### Phase 2 — Observability & Data Curation (IN PROGRESS 🟡)
-- Prometheus metrics on all services ✅
-- Query leakage cleanup ✅
-- Auto-seed Qdrant ✅
-- Redis cache verification ❌ (pending runtime test)
+**Current Status:** Phases 1-3 complete. Phase 4 (Claim Audit UI) not started. Auth + rate limiting active. Confidence calibration ECE 0.0368. Rust reranker optimized (1.4x-2.0x speedup). OpenTelemetry tracing (opt-in). Circuit breaker (closed/open/half-open). Graceful shutdown (30s). API key rotation. OpenAPI spec. CI/CD pipeline. Connection pooling. Per-key rate limits. Custom Grafana dashboard. Alerting rules (10 rules). E2E MCP smoke test 16/16 PASS.
 
-### Phase 3 — MCP Protocol (NOT STARTED 🔵)
-- Implement MCP JSON-RPC 2.0 (stdio/SSE transport)
-- Register tools: `search_scientific_literature`, `verify_factual_claim`, `generate_audit_dossier`
-- Test interoperability with Claude Desktop, Cursor, Devin
-
-### Phase 4 — Claim Audit UI (NOT STARTED 🟣)
-- Side-by-side claim audit interface
-- Export reports (Markdown/PDF)
-- Per-claim attribution & confidence display
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for full details.
 
 ---
 
@@ -416,7 +399,7 @@ Before claiming production readiness, ensure:
 - [ ] **Dataset Size:** Evaluation dataset ≥ 200 labeled queries
 - [ ] **Latency Verified:** End-to-end P95 ≤ 3.5s measured on deployment hardware
 
-**Current Status:** Phase 1 complete, Phase 2 partially complete (Redis cache pending), Phase 3-4 not started.
+**Current Status:** Phases 1-3 complete. Phase 4 (Claim Audit UI) not started. Auth + rate limiting active. Confidence calibration ECE 0.0368. Rust reranker optimized (1.4x-2.0x speedup). OpenTelemetry tracing (opt-in). Circuit breaker (closed/open/half-open). Graceful shutdown (30s). API key rotation. OpenAPI spec. CI/CD pipeline. Connection pooling. Per-key rate limits. Custom Grafana dashboard. Alerting rules (10 rules). E2E MCP smoke test 16/16 PASS.
 
 ---
 

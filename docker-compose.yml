@@ -89,6 +89,7 @@ services:
       - "9090:9090"
     volumes:
       - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./infra/prometheus/alerts.yml:/etc/prometheus/alerts.yml
       - ws-prometheus_data:/prometheus
     extra_hosts:
       - "host.docker.internal:host-gateway"
@@ -241,6 +242,7 @@ services:
       dockerfile: Dockerfile
     container_name: ws-mcp-gateway
     <<: *dns-map
+    stop_grace_period: 35s
     ports:
       - "8090:8090"
     environment:
@@ -251,6 +253,12 @@ services:
       EVAL_SERVICE_URL: ${EVAL_SERVICE_URL:-http://llm-eval-framework:8002}
       RAG_SERVICE_URL: ${RAG_SERVICE_URL:-http://rag-api:8000}
       GATEWAY_LISTEN_ADDRESS: ${GATEWAY_LISTEN_ADDRESS:-:8090}
+      GATEWAY_API_KEYS: ${GATEWAY_API_KEYS:-}
+      GATEWAY_RATE_LIMIT_RPM: ${GATEWAY_RATE_LIMIT_RPM:-60}
+      GATEWAY_RATE_LIMIT_BURST: ${GATEWAY_RATE_LIMIT_BURST:-10}
+      OTEL_ENABLED: ${OTEL_ENABLED:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://jaeger:4318}
+      OTEL_SERVICE_NAME: ${OTEL_SERVICE_NAME:-mcp-gateway}
     depends_on:
       arxiv-go-backend:
         condition: service_healthy
@@ -263,6 +271,22 @@ services:
       interval: 10s
       timeout: 5s
       retries: 10
+    networks:
+      - ws-net
+
+  # ──────────────────────────── mcp-stdio-adapter ─────────────────────────
+
+  mcp-stdio-adapter:
+    build:
+      context: ./mcp-gateway/cmd/mcp-stdio-adapter
+      dockerfile: Dockerfile
+    container_name: ws-mcp-stdio-adapter
+    profiles: ["mcp-stdio"]
+    environment:
+      MCP_URL: ${MCP_URL:-http://mcp-gateway:8090/mcp}
+    depends_on:
+      mcp-gateway:
+        condition: service_healthy
     networks:
       - ws-net
 
@@ -285,6 +309,14 @@ services:
       GROQ_API_KEY: ${GROQ_API_KEY:-}
       REDIS_ENABLED: ${REDIS_ENABLED:-false}
       REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
+      OTEL_ENABLED: ${OTEL_ENABLED:-false}
+      OTEL_EXPORTER_OTLP_ENDPOINT: ${OTEL_EXPORTER_OTLP_ENDPOINT:-http://jaeger:4318}
+      OTEL_SERVICE_NAME: rag-research
+      # The image fits these from data/evaluation/calibration_dataset.json at
+      # build time. Exposing them makes the method/path switchable without
+      # editing source; the defaults match what startup expects.
+      CALIBRATION_METHOD: ${CALIBRATION_METHOD:-isotonic}
+      CALIBRATION_MODEL_PATH: ${CALIBRATION_MODEL_PATH:-models/calibration_isotonic.joblib}
     depends_on:
       qdrant:
         condition: service_healthy
@@ -306,6 +338,21 @@ services:
       start_period: 120s
     networks:
       - ws-net
+
+  # ──────────────────────────── jaeger (tracing) ─────────────────────────────
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: ws-jaeger
+    ports:
+      - "16686:16686"
+      - "4317:4317"
+      - "4318:4318"
+    environment:
+      COLLECTOR_OTLP_ENABLED: "true"
+    networks:
+      - ws-net
+    profiles:
+      - tracing
 
 networks:
   ws-net:

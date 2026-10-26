@@ -45,3 +45,38 @@ Rincian command, output, dan verdict ada di
   service kini punya scrape job di `infra/prometheus/prometheus.yml`.
 - Auto-seed Qdrant dan `make seed-rag` sama-sama memakai `python -m` dari root
   repo agar `import src` bekerja saat volume Qdrant kosong.
+
+## 2026-10-26 — Kalibrasi build-time & track Rust (Kilo)
+
+| # | Tugas | Owner | Branch | Scope file | DoD | Status |
+|---|---|---|---|---|---|---|
+| 8 | Kalibrasi ikut image + dataset ERROR dibersihkan + `STATUS.md` generator | **opencode** | `remediation/2026-10-24` | `rag-research/Dockerfile`, `rag-research/requirements/runtime.txt`, `rag-research/scripts/fit_calibration.py`, `rag-research/data/evaluation/calibration_dataset.json`, `rag-research/tests/test_calibration_dataset_integrity.py`, `docker-compose.yml`, `.env.example`, `scripts/generate_status.sh`, `docs/confidence-calibration.md` | build sukses, `/app/models` ada, log `Calibration model loaded`, `make status-report` kalibrasi PASS | 🟡 berjalan (build image) |
+| 9 | Rust cross-encoder reranker (Cargo, ONNX, PyO3, benchmark) | **kilo** | `kilo/rust-reranker` | `rag-research/rust/**` (baru), `rag-research/src/retrieval/hybrid_retriever.py`, `rag-research/scripts/benchmark_reranker*.py` | benchmark vs Python + targeted test; **bukan** gate rilis | 📋 diusulkan |
+
+**Batas file yang tidak boleh ditulis Kilo** (milik integrator): `Makefile`,
+`docker-compose.yml`, `rag-research/Dockerfile`,
+`rag-research/requirements/*`, `.env.example`, `STATUS.md`, `AGENTS.md`,
+`PROJECT_*.md`, `docs/*` di root. Butuh perubahan di sana → tulis baris
+`REQUEST` di bawah, jangan edit langsung.
+
+**Resource lock:** hanya satu agen boleh menjalankan `docker compose build`,
+`docker compose up`, atau `make test` penuh pada satu waktu. Tulis
+`RESOURCE: docker|test` di LOCK sebelum mulai, hapus setelah selesai.
+
+## LOCK
+
+- **opencode** (aktif 2026-10-26): file scope #8 di atas. Dilepas setelah
+  build + recreate + `make status-report` terverifikasi.
+- **kilo**: belum aktif. Menunggu track kalibrasi di-commit lebih dulu —
+  `rag-research/HEAD` belum memuat `src/controller/calibration.py` dan
+  dataset, sehingga worktree/branch baru akan kehilangan fitur tersebut.
+
+## Catatan koordinasi
+
+- Todo milik Kilo yang menyebut "fit calibration / expand 200 / verify ECE"
+  **sudah selesai di track opencode**; jangan dijalankan ulang. Kondisi nyata:
+  194 sampel fit (6 baris ERROR masuk `excluded_samples`), model di-fit saat
+  build image, ECE 0.0576 (holdout).
+- Kilo cukup menjalankan targeted test selama bekerja; `make test` penuh dan
+  `make status-report` dijalankan integrator agar tidak ada dua proses berat
+  bersamaan.

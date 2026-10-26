@@ -46,3 +46,9 @@ Nilai lengkap tidak dicatat di dokumen ini dan tidak dicetak selama remediasi.
 - CI dipindahkan ke branch `main` dan menjalankan scanner (Task 0.3).
 - Jangan pernah mengisi nilai asli di `*.env.example`; gunakan placeholder yang
   dikenali scanner.
+- Jangan menjalankan `docker compose config` tanpa filter: perintah itu
+  meresolusi seluruh `.env` ke stdout, termasuk `GROQ_API_KEY`. Untuk daftar
+  service gunakan `docker compose config --services`; untuk inspeksi penuh,
+  saring dulu dengan `sed`/`grep -v`.
+- `make status-report` hanya memakai `docker compose config --quiet` dan
+  `--services`, sehingga tidak mencetak nilai rahasia.

@@ -2,8 +2,8 @@
 > **Project Title:** Scientific Claim & Prior-Art Auditor (Autonomous Research Grounding & Audit Engine)
 > **Workspace:** `ai-infra-workspace` (Orchestrating `arxiv-research-assistant`, `mcp-gateway`, `rag-research`, `llm-eval-framework`)
 > **Version:** 1.0.0
-> **Status:** Fase 1 harmonisasi dan gate operasional Fase 2 selesai (terverifikasi 2026-10-24; lihat `docs/acceptance/phase-2-verification.md`). Fase 3 belum dimulai. Klaim kualitas jawaban, kalibrasi confidence, dan atribusi per kalimat tetap terbuka.
-> **Last Updated:** 2026-10-24
+> **Status:** Phases 1-3 complete. Phase 4 (Claim Audit UI) not started. See `docs/ROADMAP.md` for full roadmap. Confidence calibration ECE 0.0663. Span-level attribution implemented. Auth + rate limiting active. E2E MCP smoke test 16/16 PASS.
+> **Last Updated:** 2026-10-26
 
 ---
 

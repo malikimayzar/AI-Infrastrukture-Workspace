@@ -1,28 +1,94 @@
 # MCP Integration Guide
 > **Last Updated:** 2026-10-25
 > **Protocol Version:** 2026-07-28
-> **Status:** Streamable HTTP MCP implementation complete
+> **Status:** Streamable HTTP MCP + stdio transport implemented
 
 ---
 
 ## Overview
 
-The mcp-gateway exposes the Model Context Protocol (MCP) over Streamable HTTP at
-`POST /mcp`. This allows AI agents (Claude Desktop, Cursor, Devin, etc.) to use
-gateway tools with span-level attribution and hard abstention.
+The mcp-gateway exposes the Model Context Protocol (MCP) with support for two transports:
 
-**Transport:** Streamable HTTP (JSON-RPC 2.0 over HTTP)
-**Endpoint:** `POST http://localhost:8090/mcp`
+- **Streamable HTTP** - Network access at `POST http://localhost:8090/mcp`
+- **stdio** - Local access for Claude Desktop, Cursor, and other MCP clients
+
+Both transports use JSON-RPC 2.0 following the MCP 2026-07-28 specification. The stdio transport reuses the same server logic as HTTP with simplified parsing (no HTTP headers required).
+
 **Protocol Version:** 2026-07-28
 
-Revision 2026-07-28 uses a per-request model: there is no `initialize`
-handshake, no protocol-level session, and no `GET` stream endpoint. Every
-request declares its protocol version, identity, and capabilities in
-`params._meta`, and mirrors the version and method in HTTP headers.
+Revision 2026-07-28 uses a per-request model: there is no `initialize` handshake, no protocol-level session, and no `GET` stream endpoint. Every request declares its protocol version, identity, and capabilities in `params._meta`. For HTTP transport, these are also mirrored in HTTP headers. For stdio transport, only `params._meta` is required.
 
 ---
 
-## Available Tools
+## Transport Options
+
+### 1. HTTP Transport (Default)
+**Endpoint:** `POST http://localhost:8090/mcp`
+
+Start the gateway in HTTP mode:
+```bash
+make up  # or
+cd mcp-gateway && go run ./cmd/server
+```
+
+HTTP transport requires MCP headers as specified below.
+
+### 2. stdio Transport (For Claude Desktop, Cursor)
+**Use case:** Local MCP clients that communicate via stdin/stdout
+
+Build and run:
+```bash
+cd mcp-gateway
+go build -o mcp-gateway ./cmd/server
+./mcp-gateway --transport=stdio
+# or
+MCP_TRANSPORT=stdio ./mcp-gateway
+```
+
+**Notes:**
+- Logs go to stderr (stdout is reserved for JSON-RPC messages)
+- Uses line-delimited JSON (NDJSON)
+- No HTTP headers required - only `params._meta` needed
+- Trace IDs are auto-generated if not provided
+
+#### Claude Desktop Configuration
+
+Add to `claude_desktop_config.json`:
+
+```json
+{
+  "mcpServers": {
+    "scientific-claim-auditor": {
+      "command": "/path/to/mcp-gateway/mcp-gateway",
+      "args": ["--transport=stdio"],
+      "env": {
+        "ARXIV_SERVICE_URL": "http://localhost:8080",
+        "RAG_SERVICE_URL": "http://localhost:8000",
+        "EVAL_SERVICE_URL": "http://localhost:8002",
+        "POSTGRES_DSN": "host=localhost port=5432 user=arxiv password=arxiv_secret dbname=arxiv_db sslmode=disable"
+      }
+    }
+  }
+}
+```
+
+Or use `MCP_TRANSPORT` env var:
+```json
+{
+  "mcpServers": {
+    "scientific-claim-auditor": {
+      "command": "/path/to/mcp-gateway/mcp-gateway",
+      "args": [],
+      "env": {
+        "MCP_TRANSPORT": "stdio",
+        "ARXIV_SERVICE_URL": "http://localhost:8080",
+        "RAG_SERVICE_URL": "http://localhost:8000",
+        "EVAL_SERVICE_URL": "http://localhost:8002"
+      }
+    }
+  }
+}
+```
 
 ### 1. search_scientific_literature
 Search arXiv for scientific papers based on a query.
@@ -57,9 +123,10 @@ Generate an audit dossier by evaluating an answer against evidence.
 
 ## Required Request Metadata
 
-Every request must carry all of the following.
+### For HTTP Transport
+Every HTTP request must carry all of the following.
 
-### HTTP headers
+#### HTTP headers
 
 | Header | Value |
 |--------|-------|
@@ -71,7 +138,7 @@ Every request must carry all of the following.
 Missing or mismatched values return HTTP 400 with JSON-RPC code `-32020`
 (`HeaderMismatch`).
 
-### `params._meta`
+#### `params._meta`
 
 ```json
 {
@@ -88,6 +155,23 @@ Missing or mismatched values return HTTP 400 with JSON-RPC code `-32020`
 optional. Metadata belongs inside `params`, not at the top level of the
 JSON-RPC envelope. A top-level `_meta` is ignored and the request fails with
 `-32602` (`InvalidParams`).
+
+### For stdio Transport
+Only `params._meta` is required. HTTP headers are not used.
+
+```json
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "method": "tools/list",
+  "params": {
+    "_meta": {
+      "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+      "io.modelcontextprotocol/clientCapabilities": {}
+    }
+  }
+}
+```
 
 ### Notifications
 
@@ -357,13 +441,34 @@ make up
 
 ---
 
-## Future Enhancements
+### 3. SSE (Server-Sent Events) Transport
+The MCP endpoint also supports SSE for clients that prefer streaming responses. When `Accept: text/event-stream` is sent, responses are returned in SSE format.
 
-### Planned (Phase 2)
-- [ ] stdio adapter for Claude Desktop compatibility
-- [ ] SSE (Server-Sent Events) for streaming responses
-- [ ] Resources support (file access)
-- [ ] Prompts support (templated workflows)
+```bash
+curl -X POST http://localhost:8090/mcp \
+  -H "Content-Type: application/json" \
+  -H "MCP-Protocol-Version: 2026-07-28" \
+  -H "Mcp-Method: tools/list" \
+  -H "Accept: text/event-stream" \
+  -d '{
+    "jsonrpc": "2.0",
+    "id": 1,
+    "method": "tools/list",
+    "params": {
+      "_meta": {
+        "io.modelcontextprotocol/protocolVersion": "2026-07-28",
+        "io.modelcontextprotocol/clientCapabilities": {}
+      }
+    }
+  }'
+```
+
+**SSE Response Format:**
+```
+event: message
+data: {"jsonrpc":"2.0","id":1,"result":{...}}
+
+```
 
 ### Optional
 - [ ] Authentication/authorization

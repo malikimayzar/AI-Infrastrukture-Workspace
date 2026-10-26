@@ -1,0 +1,110 @@
+groups:
+  - name: mcp-gateway-alerts
+    rules:
+      # High error rate (5xx) on MCP gateway
+      - alert: MCPGatewayHighErrorRate
+        expr: sum(rate(http_requests_total{job="mcp-gateway",status=~"5.."}[5m])) / sum(rate(http_requests_total{job="mcp-gateway"}[5m])) > 0.1
+        for: 5m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MCP Gateway high 5xx error rate"
+          description: "More than 10% of requests are returning 5xx errors for the last 5 minutes."
+
+      # High 4xx error rate (possible auth issues)
+      - alert: MCPGatewayHigh4xxRate
+        expr: sum(rate(http_requests_total{job="mcp-gateway",status=~"4.."}[5m])) / sum(rate(http_requests_total{job="mcp-gateway"}[5m])) > 0.3
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MCP Gateway high 4xx error rate"
+          description: "More than 30% of requests are returning 4xx errors for the last 5 minutes. Possible auth or rate limit issues."
+
+      # High latency p95
+      - alert: MCPGatewayHighLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="mcp-gateway"}[5m])) by (le)) > 10
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "MCP Gateway high latency p95"
+          description: "p95 latency exceeds 10 seconds for the last 5 minutes."
+
+      # MCP Gateway down
+      - alert: MCPGatewayDown
+        expr: up{job="mcp-gateway"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "MCP Gateway is down"
+          description: "MCP Gateway has been down for more than 1 minute."
+
+  - name: rag-api-alerts
+    rules:
+      # RAG API down
+      - alert: RAGAPIDown
+        expr: up{job="rag-api"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "RAG API is down"
+          description: "RAG API has been down for more than 1 minute."
+
+      # RAG API high latency
+      - alert: RAGAPIHighLatency
+        expr: histogram_quantile(0.95, sum(rate(http_request_duration_seconds_bucket{job="rag-api"}[5m])) by (le)) > 15
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: "RAG API high latency p95"
+          description: "p95 latency exceeds 15 seconds for the last 5 minutes."
+
+  - name: arxiv-backend-alerts
+    rules:
+      # ArXiv backend down
+      - alert: ArxivBackendDown
+        expr: up{job="go-backend"} == 0
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "ArXiv Go Backend is down"
+          description: "ArXiv Go Backend has been down for more than 1 minute."
+
+  - name: eval-framework-alerts
+    rules:
+      # Eval framework down
+      - alert: EvalFrameworkDown
+        expr: up{job="llm-eval-framework"} == 0
+        for: 2m
+        labels:
+          severity: warning
+        annotations:
+          summary: "LLM Eval Framework is down"
+          description: "LLM Eval Framework has been down for more than 2 minutes."
+
+  - name: infrastructure-alerts
+    rules:
+      # PostgreSQL down
+      - alert: PostgresDown
+        expr: up{job="postgres"} == 0 or absent(up{job="postgres"})
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "PostgreSQL is down"
+          description: "PostgreSQL has been down for more than 1 minute."
+
+      # Qdrant down
+      - alert: QdrantDown
+        expr: up{job="qdrant"} == 0 or absent(up{job="qdrant"})
+        for: 1m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Qdrant is down"
+          description: "Qdrant has been down for more than 1 minute."

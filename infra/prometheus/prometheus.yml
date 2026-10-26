@@ -2,6 +2,10 @@ global:
   scrape_interval: 15s
   evaluation_interval: 15s
 
+# Alerting rules
+rule_files:
+  - /etc/prometheus/alerts.yml
+
 # Mode A (root compose, KANONIK) — scrape lewat DNS ws-net.
 # Catatan: `host.docker.internal` tidak dapat menjangkau port yang di-publish
 # pada Docker rootless (koneksi ditolak), jadi target langsung ke service name.
