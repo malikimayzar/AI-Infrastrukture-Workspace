@@ -223,8 +223,17 @@ wait_for_count \
   1 "gateway rag log"
 
 wait_for_count \
-  "SELECT COUNT(*) FROM query_logs WHERE query = '$ARXIV_QUERY';" \
+  "SELECT COUNT(*) FROM query_logs WHERE request_id = '$GATEWAY_REQUEST_ID';" \
   1 "arxiv backend query log"
+
+# Negative check: an id that was never issued must not match anything. Without
+# this, a query that ignores the filter (or a handler that stores "" for every
+# row) would still look healthy.
+MISSING_COUNT=$(run_psql "SELECT COUNT(*) FROM query_logs WHERE request_id = 'missing-$RUN_ID';") \
+  || err "psql failed for query_logs negative check (run $RUN_ID)"
+MISSING_COUNT=$(printf '%s' "$MISSING_COUNT" | tr -d '[:space:]')
+[ "${MISSING_COUNT:-x}" = "0" ] \
+  || err "query_logs negative check: expected 0 rows for unissued id, got ${MISSING_COUNT:-unknown} (run $RUN_ID)"
 
 for pair in "arxiv:$GATEWAY_REQUEST_ID" "research_rag:$GATEWAY_REQUEST_ID_RAG"; do
   backend="${pair%%:*}"
