@@ -1,14 +1,3 @@
-#!/usr/bin/env bash
-# Fail when a Dockerfile depends on build inputs that a clean clone cannot
-# provide: files missing from the build context, files that are not tracked in
-# git, or the gitignored `hf-cache/` directory.
-#
-# Usage:
-#   scripts/check_docker_inputs.sh                  # scan the project Dockerfiles
-#   scripts/check_docker_inputs.sh path/to/Dockerfile [...]
-#
-# Sources using `--from=<stage>` are skipped because they resolve inside the
-# build. The whole-context source `.` is allowed by definition.
 set -euo pipefail
 
 repo_root=$(git rev-parse --show-toplevel)
