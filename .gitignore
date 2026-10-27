@@ -1,5 +1,3 @@
-# AI Infrastructure Workspace — root .gitignore
-
 # Virtual environments
 venv/
 .env/
@@ -38,3 +36,6 @@ backups/
 
 # Pre-commit
 .pre-commit-cache/
+
+# Env backups (secrets)
+.env.bak*

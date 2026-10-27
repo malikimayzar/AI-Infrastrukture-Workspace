@@ -1,6 +1,3 @@
-x-dns: &dns-map
-  dns: ["1.1.1.1", "8.8.8.8"]
-  dns_opt: ["use-vc"]
 services:
   # ───────────────────────── Shared infrastructure ─────────────────────────
 
@@ -62,7 +59,6 @@ services:
   ollama:
     image: ollama/ollama:latest
     container_name: ws-ollama
-    <<: *dns-map
     ports:
       # Host 11434 is occupied by a host-side Ollama daemon; expose the container on 11435.
       # In-stack services still use http://ollama:11434 (the compose network alias).
@@ -122,7 +118,6 @@ services:
       context: ./arxiv-research-assistant/python-ml
       dockerfile: Dockerfile
     container_name: ws-arxiv-python-ml
-    <<: *dns-map
     ports:
       - "8001:8001"
     volumes:
@@ -175,7 +170,6 @@ services:
       context: ./arxiv-research-assistant/go-backend
       dockerfile: Dockerfile
     container_name: ws-arxiv-go-backend
-    <<: *dns-map
     ports:
       - "8080:8080"
     environment:
@@ -207,7 +201,6 @@ services:
       context: ./llm-eval-framework
       dockerfile: Dockerfile
     container_name: ws-llm-eval-framework
-    <<: *dns-map
     ports:
       - "8002:8002"
     volumes:
@@ -241,7 +234,6 @@ services:
       context: ./mcp-gateway
       dockerfile: Dockerfile
     container_name: ws-mcp-gateway
-    <<: *dns-map
     stop_grace_period: 35s
     ports:
       - "8090:8090"
@@ -297,7 +289,6 @@ services:
       context: ./rag-research
       dockerfile: Dockerfile
     container_name: ws-rag-api
-    <<: *dns-map
     ports:
       - "8000:8000"
     environment:
