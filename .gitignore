@@ -39,3 +39,8 @@ backups/
 
 # Env backups (secrets)
 .env.bak*
+
+# Go build artifacts / binaries
+mcp-gateway/server
+*.test
+*.out

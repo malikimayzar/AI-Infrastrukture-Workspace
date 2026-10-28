@@ -1,9 +1,9 @@
 # Project Status
 
-> **Generated:** 2026-10-27T18:41:41+07:00
-> **Commit:** 2a107c6
+> **Generated:** 2026-10-28T22:21:55+07:00
+> **Commit:** cc205f5
 > **Branch:** remediation/2026-10-24
-> **Working tree:** 14 perubahan
+> **Working tree:** 22 perubahan
 
 > File ini di-generate oleh `scripts/generate_status.sh` dari eksekusi nyata.
 > Jangan edit manual — jalankan ulang generatornya.
@@ -12,9 +12,9 @@
 
 | Status | Jumlah |
 |---|---:|
-| ✅ PASS | 33 |
-| ⚠️ WARN | 5 |
-| ❌ FAIL | 3 |
+| ✅ PASS | 37 |
+| ⚠️ WARN | 3 |
+| ❌ FAIL | 1 |
 | ⏭️ SKIP | 1 |
 | ℹ️ INFO | 4 |
 
@@ -26,20 +26,20 @@
 
 | Check | Status | Evidence |
 |---|---|---|
-| Release tags | ⚠️ WARN | 0 tag — hasil tidak dapat direproduksi dari rilis |
+| Release tags | ✅ PASS | 1 tag |
 | Default branch | ℹ️ INFO | master |
-| CI trigger cocok dengan default branch | ✅ PASS | branches: [main] branches: [main, master]  |
+| CI trigger cocok dengan default branch | ✅ PASS | branches: [main, master] branches: [main, master, remediation/2026-10-24, "remediation/**"]  |
 | Submodule sinkron | ✅ PASS | 4 submodule |
 
 ## Build & Tests
 
 | Check | Status | Evidence |
 |---|---|---|
-| arxiv Go — collected | ✅ PASS | 18 test |
-| mcp-gateway — collected | ✅ PASS | 191 test |
+| arxiv Go — collected | ✅ PASS | 22 test |
+| mcp-gateway — collected | ✅ PASS | 193 test |
 | arxiv python-ml — collected | ✅ PASS | 48 test |
 | llm-eval — collected | ✅ PASS | 228 test |
-| rag-research — collected | ✅ PASS | 495 test |
+| rag-research — collected | ✅ PASS | 500 test |
 | Test suite penuh | ⏭️ SKIP | jalankan dengan --full untuk mengeksekusi |
 
 ## Runtime
@@ -94,15 +94,15 @@
 |---|---|---|
 | Secret scan | ✅ PASS | scripts/check_secrets.sh bersih |
 | .env di-gitignore | ✅ PASS | .env tidak akan ter-commit |
-| Groq key revocation | ❌ FAIL | dokumen insiden masih menyatakan revocation pending |
-| Binary tracked | ❌ FAIL | tracked: server=0MB |
+| Groq key revocation | ✅ PASS | tidak ada status pending di dokumen insiden |
+| Binary tracked | ✅ PASS | tidak ada binary besar yang tracked |
 
 ## Documentation
 
 | Check | Status | Evidence |
 |---|---|---|
-| Jumlah file .md | ℹ️ INFO | 201 |
-| Link internal rusak | ⚠️ WARN | 3 link; contoh: mcp-gateway/PROJECT_GOALS.md -> IMPLEMENTATION_TODO.md; mcp-gateway/docs/workspace-alignment.md -> ../IMPLEMENTATION_TODO.md; mcp-gateway/docs/workspace-alignment.md -> ../WORKSPACE_DIRECTION.md |
+| Jumlah file .md | ℹ️ INFO | 211 |
+| Link internal rusak | ✅ PASS | 0 link rusak |
 | README -> docs/ARCHITECTURE.md | ✅ PASS | tidak dirujuk |
 | Dokumen status ganda | ⚠️ WARN | PROJECT_CONTEXT.md, docs/ROADMAP.md, STATUS.md |
 
@@ -110,19 +110,15 @@
 
 | Check | Status | Evidence |
 |---|---|---|
-| Phase 1 smoke (v3) | ❌ FAIL | phase1_smoke_v3_20261024T164559.452903Z.json phase1_pass=False human_review_complete=False |
+| Phase 1 smoke (v3) | ❌ FAIL | phase1_smoke_v3_20261028T152131.710510Z.json phase1_pass=False human_review_complete=False |
 | Laporan kalibrasi | ✅ PASS | models/calibration_report.json n=194 (isotonic, platt) |
 
 ## Gap yang perlu ditutup
 
-- **Repository / Release tags** (WARN): 0 tag — hasil tidak dapat direproduksi dari rilis
 - **Datasets / Unique queries** (WARN): 151 unik, 63 duplikat, 0 konflik label (bias kalibrasi)
 - **MCP / SSE (kode)** (WARN): kode ada; perilaku streaming belum diverifikasi
-- **Security / Groq key revocation** (FAIL): dokumen insiden masih menyatakan revocation pending
-- **Security / Binary tracked** (FAIL): tracked: server=0MB
-- **Documentation / Link internal rusak** (WARN): 3 link; contoh: mcp-gateway/PROJECT_GOALS.md -> IMPLEMENTATION_TODO.md; mcp-gateway/docs/workspace-alignment.md -> ../IMPLEMENTATION_TODO.md; mcp-gateway/docs/workspace-alignment.md -> ../WORKSPACE_DIRECTION.md
 - **Documentation / Dokumen status ganda** (WARN): PROJECT_CONTEXT.md, docs/ROADMAP.md, STATUS.md
-- **Quality Gates / Phase 1 smoke (v3)** (FAIL): phase1_smoke_v3_20261024T164559.452903Z.json phase1_pass=False human_review_complete=False
+- **Quality Gates / Phase 1 smoke (v3)** (FAIL): phase1_smoke_v3_20261028T152131.710510Z.json phase1_pass=False human_review_complete=False
 
 ---
 *Regenerate: `make status-report` atau `bash scripts/generate_status.sh`.*

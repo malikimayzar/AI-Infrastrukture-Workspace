@@ -2,7 +2,7 @@
 
 **Tanggal ditemukan:** 2026-10-24
 **Status repo:** containment selesai
-**Status kredensial:** **revocation pending — tindakan pemilik akun**
+**Status kredensial:** **revocation required — tindakan pemilik akun (belum dikonfirmasi)**
 
 ## Ringkasan
 

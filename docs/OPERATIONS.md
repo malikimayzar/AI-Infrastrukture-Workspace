@@ -109,3 +109,17 @@ See [`docs/backup-guide.md`](backup-guide.md) for restore procedures.
 - Run `make check-secrets` before changes
 - Rotate keys via `make rotate-key` only
 - Use `scripts/check_secrets.sh` to audit tracked files
+
+## Release Checklist
+
+1. Run `make verify` (status + tests + secret scan).
+2. Ensure `STATUS.md` reports Phase 1 PASS.
+3. Create an annotated tag: `git tag -a v0.1.0 -m "Release v0.1.0"`.
+4. Push tags: `git push origin v0.1.0` (integrator only).
+5. Revoke any exposed Groq API keys and rotate via `KEY=... make rotate-key`.
+
+## Runbook
+
+- Deployment: see docs/DEPLOYMENT.md (TODO).
+- Backup drill: run scripts/backup_all.sh and verify restore.
+- Incident response: check /ready, logs, and circuit breaker states.

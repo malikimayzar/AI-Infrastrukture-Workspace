@@ -7,7 +7,7 @@
 ## 1. Posisi & Diferensiasi (Core Value)
 - **Grounded + hard abstention + span-level attribution** — jawaban selalu punya bukti; tanpa bukti → abstain.
 - **No-LLM-judge evaluation** (faithfulness evaluator deterministik) → reproducible & auditable untuk regulasi.
-- **Confidence calibration (ECE 0.0368)** → confidence yang bisa dipercaya, bukan skor kosmetik.
+- **Confidence calibration (ECE 0.0576)** → confidence yang bisa dipercaya, bukan skor kosmetik.
 
 ## 2. Fitur yang Meningkatkan Willingness-to-Pay (P1–P2)
 - Claim Audit UI (Phase 4): side-by-side claim vs evidence, highlight span merah/kuning/hijau, ekspor laporan (PDF/Markdown/JSON).
@@ -61,3 +61,4 @@ Lihat detail implementasi di `mcp-gateway/internal/middleware/per_key_rate_limit
 Tier: free (10 RPM, burst 5), pro (60 RPM, burst 20), enterprise (300 RPM, burst 100).
 Mapping via env `GATEWAY_KEY_TIERS=key:tier,...`.
 MD
+- Phase 4 (Audit Dossier UI) started.

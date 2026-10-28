@@ -1,5 +1,9 @@
 # AI Infra Workspace — Scientific Claim & Prior-Art Auditor
 
+## Current State
+
+See `STATUS.md` for the authoritative runtime/acceptance status. Do not treat this project as production-ready until `STATUS.md` reports Phase 1 PASS.
+
 Root Compose is the canonical way to run the four repositories and shared infrastructure. Per-repo Compose is for isolated development only.
 
 ## Quickstart

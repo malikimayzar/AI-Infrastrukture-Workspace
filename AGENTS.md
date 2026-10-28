@@ -380,7 +380,7 @@ curl http://localhost:8000/health    # rag-api
 
 > **Source of Truth:** [`docs/ROADMAP.md`](docs/ROADMAP.md) — single consolidated roadmap.
 
-**Current Status:** Phases 1-3 complete. Phase 4 (Claim Audit UI) not started. Auth + rate limiting active. Confidence calibration ECE 0.0368. Rust reranker optimized (1.4x-2.0x speedup). OpenTelemetry tracing (opt-in). Circuit breaker (closed/open/half-open). Graceful shutdown (30s). API key rotation. OpenAPI spec. CI/CD pipeline. Connection pooling. Per-key rate limits. Custom Grafana dashboard. Alerting rules (10 rules). E2E MCP smoke test 16/16 PASS.
+**Current Status:** Phase 1 acceptance pending. Phase 4 (Claim Audit UI) not started. Auth + rate limiting active. Confidence calibration ECE 0.0576. Rust reranker optimized (1.4x-2.0x speedup). OpenTelemetry tracing (opt-in). Circuit breaker (closed/open/half-open). Graceful shutdown (30s). API key rotation. OpenAPI spec. CI/CD pipeline. Connection pooling. Per-key rate limits. Custom Grafana dashboard. Alerting rules (10 rules). E2E MCP smoke test 16/16 PASS.
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for full details.
 
@@ -399,7 +399,7 @@ Before claiming production readiness, ensure:
 - [ ] **Dataset Size:** Evaluation dataset ≥ 200 labeled queries
 - [ ] **Latency Verified:** End-to-end P95 ≤ 3.5s measured on deployment hardware
 
-**Current Status:** Phases 1-3 complete. Phase 4 (Claim Audit UI) not started. Auth + rate limiting active. Confidence calibration ECE 0.0368. Rust reranker optimized (1.4x-2.0x speedup). OpenTelemetry tracing (opt-in). Circuit breaker (closed/open/half-open). Graceful shutdown (30s). API key rotation. OpenAPI spec. CI/CD pipeline. Connection pooling. Per-key rate limits. Custom Grafana dashboard. Alerting rules (10 rules). E2E MCP smoke test 16/16 PASS.
+**Current Status:** Phase 1 acceptance pending. Phase 4 (Claim Audit UI) not started. Auth + rate limiting active. Confidence calibration ECE 0.0576. Rust reranker optimized (1.4x-2.0x speedup). OpenTelemetry tracing (opt-in). Circuit breaker (closed/open/half-open). Graceful shutdown (30s). API key rotation. OpenAPI spec. CI/CD pipeline. Connection pooling. Per-key rate limits. Custom Grafana dashboard. Alerting rules (10 rules). E2E MCP smoke test 16/16 PASS.
 
 ---
 

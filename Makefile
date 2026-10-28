@@ -161,3 +161,8 @@ arxiv-up:  ## Start arxiv stack only
 
 arxiv-down:  ## Stop arxiv stack only
 	cd arxiv-research-assistant && $(MAKE) down
+
+verify:  ## Run status + tests + secret scan
+	make status
+	make test
+	make check-secrets

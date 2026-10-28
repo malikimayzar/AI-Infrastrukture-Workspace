@@ -67,7 +67,7 @@ This workspace builds a **Scientific Claim & Prior-Art Auditor** with a focus on
 | Hard abstention | ✅ Done | `rag-research/` (ConfidenceEngine) |
 | Faithfulness evaluation (no LLM judge) | ✅ Done | `llm-eval-framework/` |
 | Span-level attribution (claim → chunk) | ✅ Done | `rag-research/src/utils/attribution.py` |
-| Confidence calibration (isotonic) | ✅ Done | `rag-research/src/controller/calibration.py` (ECE 0.0368, 214 samples) |
+| Confidence calibration (isotonic) | ✅ Done | `rag-research/src/controller/calibration.py` (ECE 0.0576, 194 samples) |
 | Audit logging | ✅ Done | `mcp-gateway/` + Postgres |
 | OpenTelemetry tracing | ✅ Done | Distributed tracing via OTLP. Go gateway + Python RAG. Opt-in (`OTEL_ENABLED=true`). See `docs/tracing-guide.md`. |
 | Circuit breaker | ✅ Done | Per-service circuit breaker (closed/open/half-open). Integrated in all 3 tool adapters. States exposed via `/ready`. See `mcp-gateway/docs/circuit-breaker.md`. |
@@ -87,7 +87,7 @@ This workspace builds a **Scientific Claim & Prior-Art Auditor** with a focus on
 
 See full checklist in [`PROJECT_GOALS.md §9`](../PROJECT_GOALS.md#9-daftar-periksa-kesiapan-produksi-production-readiness-checklist).
 
-**Current Status:** Phases 1-3 complete. Phase 4 (UI) not started. Rust reranker optimized (1.4x-2.0x speedup). Auth + rate limiting active. Confidence calibration ECE 0.0368. OpenTelemetry tracing (opt-in). Circuit breaker (closed/open/half-open). Graceful shutdown (30s). API key rotation. OpenAPI spec. CI/CD pipeline. Connection pooling. Per-key rate limits. Custom Grafana dashboard. Alerting rules (10 rules). E2E MCP smoke test 16/16 PASS.
+**Current Status:** Phase 1 acceptance pending. Phase 4 (UI) not started. Rust reranker optimized (1.4x-2.0x speedup). Auth + rate limiting active. Confidence calibration ECE 0.0576. OpenTelemetry tracing (opt-in). Circuit breaker (closed/open/half-open). Graceful shutdown (30s). API key rotation. OpenAPI spec. CI/CD pipeline. Connection pooling. Per-key rate limits. Custom Grafana dashboard. Alerting rules (10 rules). E2E MCP smoke test 16/16 PASS.
 
 ## Test Status
 
