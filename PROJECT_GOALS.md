@@ -193,15 +193,15 @@ Gateway dan Engine RAG menetapkan 3 zona keyakinan:
 
 ```text
  Skor Relevansi Bukti (Normalisasi RRF + Cross-Encoder)
- 0.00                    0.35                    0.70                    1.00
+ 0.00                    0.35                    0.65                    1.00
   ├─── HARD REJECT ───────┼─── PARTIAL TRUST ─────┼────── FULL GENERATE ──┤
   │    (Abstensi Murni)   │    (Maksimal 3 Chunks │      (Rute Jawaban    │
   │    Lewati Generator   │     Peringatan Rendah)│       Normal Lengkap) │
 ```
 
 1. **Zona Merah ($< 0.35$):** Menolak secara keras (*Hard Abstain*). Tidak memanggil LLM untuk menghemat kuota token dan menjamin nol halusinasi.
-2. **Zona Kuning ($0.35 - 0.70$):** Membatasi generator hanya pada 3 bukti terkuat; jawaban ditandai dengan flag `partial_trust`.
-3. **Zona Hijau ($\ge 0.70$):** Relevansi tinggi dan konsisten lintas sumber dense & sparse; diizinkan menghasilkan jawaban lengkap dengan atribusi penuh.
+2. **Zona Kuning ($0.35 - 0.65$):** Membatasi generator hanya pada 3 bukti terkuat; jawaban ditandai dengan flag `partial_trust`.
+3. **Zona Hijau ($\ge 0.65$):** Relevansi tinggi dan konsisten lintas sumber dense & sparse; diizinkan menghasilkan jawaban lengkap dengan atribusi penuh.
 
 ---
 

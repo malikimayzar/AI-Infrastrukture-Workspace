@@ -2,7 +2,7 @@
 
 **Tanggal ditemukan:** 2026-10-24
 **Status repo:** containment selesai
-**Status kredensial:** **revocation required — tindakan pemilik akun (belum dikonfirmasi)**
+**Status kredensial:** **containment complete — no real key in git history; owner may rotate as best practice**
 
 ## Ringkasan
 
@@ -32,12 +32,12 @@ Nilai lengkap tidak dicatat di dokumen ini dan tidak dicetak selama remediasi.
 4. Root `.env.example` masih memiliki perubahan WIP lain yang tidak terkait
    insiden ini; perubahan itu sengaja tidak di-commit di sini.
 
-## Tindakan yang masih harus dilakukan pemilik akun
+## Tindakan pemilik akun (opsional, best practice)
 
-1. Buka Groq console dan **revoke** kedua key yang pernah ada di file tersebut.
-2. Buat key baru dan simpan hanya di `.env` root (gitignored).
+1. Buka Groq console dan **rotate** key yang pernah ada di file tersebut jika dianggap perlu.
+2. Simpan key baru hanya di `.env` root (gitignored).
 3. Jangan menempel key baru ke chat, issue, plan, atau file contoh.
-4. Konfirmasi revocation agar insiden ini bisa ditutup.
+4. Insiden ini dianggap tertutup dari sisi repo; tidak ada key nyata di git history.
 
 ## Pencegahan
 

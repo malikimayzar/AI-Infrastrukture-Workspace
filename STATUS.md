@@ -1,9 +1,9 @@
 # Project Status
 
-> **Generated:** 2026-10-28T22:21:55+07:00
-> **Commit:** cc205f5
+> **Generated:** 2026-10-29T16:31:08+07:00
+> **Commit:** cf4a808
 > **Branch:** remediation/2026-10-24
-> **Working tree:** 22 perubahan
+> **Working tree:** 8 perubahan
 
 > File ini di-generate oleh `scripts/generate_status.sh` dari eksekusi nyata.
 > Jangan edit manual — jalankan ulang generatornya.
@@ -12,11 +12,11 @@
 
 | Status | Jumlah |
 |---|---:|
-| ✅ PASS | 37 |
+| ✅ PASS | 31 |
 | ⚠️ WARN | 3 |
-| ❌ FAIL | 1 |
+| ❌ FAIL | 2 |
 | ⏭️ SKIP | 1 |
-| ℹ️ INFO | 4 |
+| ℹ️ INFO | 9 |
 
 **Cara membaca:** PASS = diverifikasi oleh eksekusi; WARN = perlu perhatian; FAIL = klaim belum didukung; SKIP = prasyarat tidak tersedia; INFO = konteks.
 
@@ -39,7 +39,7 @@
 | mcp-gateway — collected | ✅ PASS | 193 test |
 | arxiv python-ml — collected | ✅ PASS | 48 test |
 | llm-eval — collected | ✅ PASS | 228 test |
-| rag-research — collected | ✅ PASS | 500 test |
+| rag-research — collected | ✅ PASS | 526 test |
 | Test suite penuh | ⏭️ SKIP | jalankan dengan --full untuk mengeksekusi |
 
 ## Runtime
@@ -47,11 +47,11 @@
 | Check | Status | Evidence |
 |---|---|---|
 | Compose valid | ✅ PASS | 8 core; 12 dengan profile |
-| mcp-gateway | ✅ PASS | http://localhost:8090/health |
-| arxiv-go-backend | ✅ PASS | http://localhost:8080/health |
-| arxiv-python-ml | ✅ PASS | http://localhost:8001/health |
-| llm-eval-framework | ✅ PASS | http://localhost:8002/health |
-| rag-api | ✅ PASS | http://localhost:8000/health |
+| mcp-gateway | ℹ️ INFO | http://localhost:8090/health tidak merespons (mungkin tidak berjalan) |
+| arxiv-go-backend | ℹ️ INFO | http://localhost:8080/health tidak merespons (mungkin tidak berjalan) |
+| arxiv-python-ml | ℹ️ INFO | http://localhost:8001/health tidak merespons (mungkin tidak berjalan) |
+| llm-eval-framework | ℹ️ INFO | http://localhost:8002/health tidak merespons (mungkin tidak berjalan) |
+| rag-api | ℹ️ INFO | http://localhost:8000/health tidak merespons (mungkin tidak berjalan) |
 
 ## Calibration
 
@@ -63,7 +63,7 @@
 | Compose punya env kalibrasi | ✅ PASS | CALIBRATION_METHOD CALIBRATION_MODEL_PATH  |
 | .env.example punya variabel kalibrasi | ✅ PASS | CALIBRATION_METHOD CALIBRATION_MODEL_PATH  |
 | Model vs dataset | ✅ PASS | 214 sampel = 214 baris dataset |
-| Container punya model | ✅ PASS | /app/models/calibration_isotonic.joblib ada |
+| Container punya model | ❌ FAIL | file tidak ada di container — runtime fallback |
 | Container memuat model | ✅ PASS | log startup: Calibration model loaded |
 
 ## Datasets
@@ -101,7 +101,7 @@
 
 | Check | Status | Evidence |
 |---|---|---|
-| Jumlah file .md | ℹ️ INFO | 211 |
+| Jumlah file .md | ℹ️ INFO | 215 |
 | Link internal rusak | ✅ PASS | 0 link rusak |
 | README -> docs/ARCHITECTURE.md | ✅ PASS | tidak dirujuk |
 | Dokumen status ganda | ⚠️ WARN | PROJECT_CONTEXT.md, docs/ROADMAP.md, STATUS.md |
@@ -110,15 +110,16 @@
 
 | Check | Status | Evidence |
 |---|---|---|
-| Phase 1 smoke (v3) | ❌ FAIL | phase1_smoke_v3_20261028T152131.710510Z.json phase1_pass=False human_review_complete=False |
-| Laporan kalibrasi | ✅ PASS | models/calibration_report.json n=194 (isotonic, platt) |
+| Phase 1 smoke (v3) | ❌ FAIL | phase1_smoke_v3_20261028T193637.907257Z.json phase1_pass=False human_review_complete=True |
+| Laporan kalibrasi | ✅ PASS | models/calibration_report.json n=214 (isotonic, platt) |
 
 ## Gap yang perlu ditutup
 
+- **Calibration / Container punya model** (FAIL): file tidak ada di container — runtime fallback
 - **Datasets / Unique queries** (WARN): 151 unik, 63 duplikat, 0 konflik label (bias kalibrasi)
 - **MCP / SSE (kode)** (WARN): kode ada; perilaku streaming belum diverifikasi
 - **Documentation / Dokumen status ganda** (WARN): PROJECT_CONTEXT.md, docs/ROADMAP.md, STATUS.md
-- **Quality Gates / Phase 1 smoke (v3)** (FAIL): phase1_smoke_v3_20261028T152131.710510Z.json phase1_pass=False human_review_complete=False
+- **Quality Gates / Phase 1 smoke (v3)** (FAIL): phase1_smoke_v3_20261028T193637.907257Z.json phase1_pass=False human_review_complete=True
 
 ---
 *Regenerate: `make status-report` atau `bash scripts/generate_status.sh`.*

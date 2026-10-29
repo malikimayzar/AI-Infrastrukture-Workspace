@@ -9,7 +9,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-arxiv_secret}
       POSTGRES_DB: ${POSTGRES_DB:-arxiv_db}
     ports:
-      - "5432:5432"
+      - "127.0.0.1:5432:5432"
     volumes:
       - ws-postgres_data:/var/lib/postgresql/data
       - ./arxiv-research-assistant/infra/postgres/init.sql:/docker-entrypoint-initdb.d/init.sql
@@ -29,8 +29,8 @@ services:
     image: qdrant/qdrant:latest
     container_name: ws-qdrant
     ports:
-      - "6333:6333"
-      - "6334:6334"
+      - "127.0.0.1:6333:6333"
+      - "127.0.0.1:6334:6334"
     volumes:
       - ws-qdrant_data:/qdrant/storage
     healthcheck:
@@ -47,7 +47,7 @@ services:
     container_name: ws-redis
     profiles: ["monitoring"]
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     healthcheck:
       test: ["CMD", "redis-cli", "ping"]
       interval: 10s
@@ -62,7 +62,7 @@ services:
     ports:
       # Host 11434 is occupied by a host-side Ollama daemon; expose the container on 11435.
       # In-stack services still use http://ollama:11434 (the compose network alias).
-      - "11435:11434"
+      - "127.0.0.1:11435:11434"
     volumes:
       - ws-ollama_data:/root/.ollama
     environment:
@@ -82,7 +82,7 @@ services:
     container_name: ws-prometheus
     profiles: ["monitoring"]
     ports:
-      - "9090:9090"
+      - "127.0.0.1:9090:9090"
     volumes:
       - ./infra/prometheus/prometheus.yml:/etc/prometheus/prometheus.yml
       - ./infra/prometheus/alerts.yml:/etc/prometheus/alerts.yml
@@ -100,7 +100,7 @@ services:
     container_name: ws-grafana
     profiles: ["monitoring"]
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     environment:
       GF_SECURITY_ADMIN_PASSWORD: admin
       GF_USERS_ALLOW_SIGN_UP: false
@@ -119,7 +119,7 @@ services:
       dockerfile: Dockerfile
     container_name: ws-arxiv-python-ml
     ports:
-      - "8001:8001"
+      - "127.0.0.1:8001:8001"
     volumes:
       - ./rag-research/hf-cache:/app/hf-cache:ro
     environment:
@@ -171,7 +171,7 @@ services:
       dockerfile: Dockerfile
     container_name: ws-arxiv-go-backend
     ports:
-      - "8080:8080"
+      - "127.0.0.1:8080:8080"
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -202,7 +202,7 @@ services:
       dockerfile: Dockerfile
     container_name: ws-llm-eval-framework
     ports:
-      - "8002:8002"
+      - "127.0.0.1:8002:8002"
     volumes:
       # Keep eval artifacts and checkpoints, which are otherwise lost on rebuild.
       - ./llm-eval-framework/reports:/app/reports
@@ -236,7 +236,7 @@ services:
     container_name: ws-mcp-gateway
     stop_grace_period: 35s
     ports:
-      - "8090:8090"
+      - "127.0.0.1:8090:8090"
     environment:
       POSTGRES_DSN: host=ws-postgres port=5432 user=${POSTGRES_USER:-arxiv} password=${POSTGRES_PASSWORD:-arxiv_secret} dbname=${POSTGRES_DB:-arxiv_db} sslmode=disable
       GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
@@ -290,7 +290,7 @@ services:
       dockerfile: Dockerfile
     container_name: ws-rag-api
     ports:
-      - "8000:8000"
+      - "127.0.0.1:8000:8000"
     environment:
       API_HOST: ${API_HOST:-0.0.0.0}
       API_PORT: ${API_PORT:-8000}
@@ -335,9 +335,9 @@ services:
     image: jaegertracing/all-in-one:latest
     container_name: ws-jaeger
     ports:
-      - "16686:16686"
-      - "4317:4317"
-      - "4318:4318"
+      - "127.0.0.1:16686:16686"
+      - "127.0.0.1:4317:4317"
+      - "127.0.0.1:4318:4318"
     environment:
       COLLECTOR_OTLP_ENABLED: "true"
     networks:

@@ -44,3 +44,6 @@ backups/
 mcp-gateway/server
 *.test
 *.out
+
+# Go build artifacts / binaries (additional)
+mcp-gateway/server_new
