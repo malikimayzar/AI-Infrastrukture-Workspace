@@ -1,9 +1,9 @@
 # Project Status
 
-> **Generated:** 2026-10-29T17:39:17+07:00
-> **Commit:** dd44e70
+> **Generated:** 2026-10-29T18:01:28+07:00
+> **Commit:** 9a77c08
 > **Branch:** remediation/2026-10-24
-> **Working tree:** 2 perubahan
+> **Working tree:** 1 perubahan
 
 > File ini di-generate oleh `scripts/generate_status.sh` dari eksekusi nyata.
 > Jangan edit manual — jalankan ulang generatornya.
@@ -39,7 +39,7 @@
 | mcp-gateway — collected | ✅ PASS | 197 test |
 | arxiv python-ml — collected | ✅ PASS | 48 test |
 | llm-eval — collected | ✅ PASS | 228 test |
-| rag-research — collected | ✅ PASS | 526 test |
+| rag-research — collected | ✅ PASS | 536 test |
 | Test suite penuh | ⏭️ SKIP | jalankan dengan --full untuk mengeksekusi |
 
 ## Runtime
@@ -57,12 +57,12 @@
 
 | Check | Status | Evidence |
 |---|---|---|
-| Model file | ✅ PASS | calibration_isotonic.joblib (14550 bytes) |
-| Model dapat dimuat | ✅ PASS | method=isotonic fitted=True samples=151 |
+| Model file | ✅ PASS | calibration_isotonic.joblib (21329 bytes) |
+| Model dapat dimuat | ✅ PASS | method=isotonic fitted=True samples=206 |
 | Image menyediakan models/ | ✅ PASS | model di-fit saat build (fit_calibration.py) |
 | Compose punya env kalibrasi | ✅ PASS | CALIBRATION_METHOD CALIBRATION_MODEL_PATH  |
 | .env.example punya variabel kalibrasi | ✅ PASS | CALIBRATION_METHOD CALIBRATION_MODEL_PATH  |
-| Model vs dataset | ✅ PASS | 151 sampel = 151 baris dataset |
+| Model vs dataset | ✅ PASS | 206 sampel = 206 baris dataset |
 | Container punya model | ❌ FAIL | file tidak ada di container — runtime fallback |
 | Container memuat model | ✅ PASS | log startup: Calibration model loaded |
 
@@ -70,14 +70,14 @@
 
 | Check | Status | Evidence |
 |---|---|---|
-| Rows | ℹ️ INFO | 151 baris (declared 151) |
-| Jumlah baris cocok | ✅ PASS | 151 = declared 151 |
+| Rows | ℹ️ INFO | 206 baris (declared 206) |
+| Jumlah baris cocok | ✅ PASS | 206 = declared 206 |
 | Baris dikeluarkan | ✅ PASS | 6 baris dikeluarkan dari fitting |
-| Label is_supported | ✅ PASS | 151/151 berlabel |
-| Unique queries | ✅ PASS | 151 unik |
+| Label is_supported | ✅ PASS | 206/206 berlabel |
+| Unique queries | ✅ PASS | 206 unik |
 | Baris ERROR | ✅ PASS | 0 |
-| Probe negatif off-domain | ✅ PASS | 10 probe, semuanya is_supported=false (disengaja) |
-| ground_truth (opsional) | ℹ️ INFO | 13/151 baris punya teks referensi; label utama = is_supported |
+| Probe negatif off-domain | ✅ PASS | 15 probe, semuanya is_supported=false (disengaja) |
+| ground_truth (opsional) | ℹ️ INFO | 26/206 baris punya teks referensi; label utama = is_supported |
 
 ## MCP
 
@@ -111,7 +111,7 @@
 | Check | Status | Evidence |
 |---|---|---|
 | Phase 1 smoke (v3) | ❌ FAIL | phase1_smoke_v3_20261028T193637.907257Z.json phase1_pass=False human_review_complete=True |
-| Laporan kalibrasi | ✅ PASS | models/calibration_report.json n=151 (isotonic, platt) |
+| Laporan kalibrasi | ✅ PASS | models/calibration_report.json n=206 (isotonic, platt) |
 
 ## Gap yang perlu ditutup
 
