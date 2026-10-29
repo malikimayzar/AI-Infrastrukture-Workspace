@@ -1,9 +1,9 @@
 # Project Status
 
-> **Generated:** 2026-10-29T18:04:15+07:00
-> **Commit:** 4f7e016
+> **Generated:** 2026-10-29T21:46:54+07:00
+> **Commit:** 2e36dcb
 > **Branch:** remediation/2026-10-24
-> **Working tree:** 1 perubahan
+> **Working tree:** 9 perubahan
 
 > File ini di-generate oleh `scripts/generate_status.sh` dari eksekusi nyata.
 > Jangan edit manual — jalankan ulang generatornya.
@@ -12,11 +12,11 @@
 
 | Status | Jumlah |
 |---|---:|
-| ✅ PASS | 32 |
+| ✅ PASS | 38 |
 | ⚠️ WARN | 2 |
-| ❌ FAIL | 2 |
+| ❌ FAIL | 1 |
 | ⏭️ SKIP | 1 |
-| ℹ️ INFO | 9 |
+| ℹ️ INFO | 4 |
 
 **Cara membaca:** PASS = diverifikasi oleh eksekusi; WARN = perlu perhatian; FAIL = klaim belum didukung; SKIP = prasyarat tidak tersedia; INFO = konteks.
 
@@ -36,7 +36,7 @@
 | Check | Status | Evidence |
 |---|---|---|
 | arxiv Go — collected | ✅ PASS | 22 test |
-| mcp-gateway — collected | ✅ PASS | 197 test |
+| mcp-gateway — collected | ✅ PASS | 200 test |
 | arxiv python-ml — collected | ✅ PASS | 48 test |
 | llm-eval — collected | ✅ PASS | 228 test |
 | rag-research — collected | ✅ PASS | 536 test |
@@ -47,11 +47,11 @@
 | Check | Status | Evidence |
 |---|---|---|
 | Compose valid | ✅ PASS | 8 core; 12 dengan profile |
-| mcp-gateway | ℹ️ INFO | http://localhost:8090/health tidak merespons (mungkin tidak berjalan) |
-| arxiv-go-backend | ℹ️ INFO | http://localhost:8080/health tidak merespons (mungkin tidak berjalan) |
-| arxiv-python-ml | ℹ️ INFO | http://localhost:8001/health tidak merespons (mungkin tidak berjalan) |
-| llm-eval-framework | ℹ️ INFO | http://localhost:8002/health tidak merespons (mungkin tidak berjalan) |
-| rag-api | ℹ️ INFO | http://localhost:8000/health tidak merespons (mungkin tidak berjalan) |
+| mcp-gateway | ✅ PASS | http://localhost:8090/health |
+| arxiv-go-backend | ✅ PASS | http://localhost:8080/health |
+| arxiv-python-ml | ✅ PASS | http://localhost:8001/health |
+| llm-eval-framework | ✅ PASS | http://localhost:8002/health |
+| rag-api | ✅ PASS | http://localhost:8000/health |
 
 ## Calibration
 
@@ -63,7 +63,7 @@
 | Compose punya env kalibrasi | ✅ PASS | CALIBRATION_METHOD CALIBRATION_MODEL_PATH  |
 | .env.example punya variabel kalibrasi | ✅ PASS | CALIBRATION_METHOD CALIBRATION_MODEL_PATH  |
 | Model vs dataset | ✅ PASS | 206 sampel = 206 baris dataset |
-| Container punya model | ❌ FAIL | file tidak ada di container — runtime fallback |
+| Container punya model | ✅ PASS | /app/models/calibration_isotonic.joblib ada |
 | Container memuat model | ✅ PASS | log startup: Calibration model loaded |
 
 ## Datasets
@@ -101,7 +101,7 @@
 
 | Check | Status | Evidence |
 |---|---|---|
-| Jumlah file .md | ℹ️ INFO | 217 |
+| Jumlah file .md | ℹ️ INFO | 219 |
 | Link internal rusak | ✅ PASS | 0 link rusak |
 | README -> docs/ARCHITECTURE.md | ✅ PASS | tidak dirujuk |
 | Dokumen status ganda | ⚠️ WARN | PROJECT_CONTEXT.md, docs/ROADMAP.md, STATUS.md |
@@ -110,15 +110,14 @@
 
 | Check | Status | Evidence |
 |---|---|---|
-| Phase 1 smoke (v3) | ❌ FAIL | phase1_smoke_v3_20261028T193637.907257Z.json phase1_pass=False human_review_complete=True |
+| Phase 1 smoke (v3) | ❌ FAIL | phase1_smoke_v3.json phase1_pass=False human_review_complete=False |
 | Laporan kalibrasi | ✅ PASS | models/calibration_report.json n=206 (isotonic, platt) |
 
 ## Gap yang perlu ditutup
 
-- **Calibration / Container punya model** (FAIL): file tidak ada di container — runtime fallback
 - **MCP / SSE (kode)** (WARN): kode ada; perilaku streaming belum diverifikasi
 - **Documentation / Dokumen status ganda** (WARN): PROJECT_CONTEXT.md, docs/ROADMAP.md, STATUS.md
-- **Quality Gates / Phase 1 smoke (v3)** (FAIL): phase1_smoke_v3_20261028T193637.907257Z.json phase1_pass=False human_review_complete=True
+- **Quality Gates / Phase 1 smoke (v3)** (FAIL): phase1_smoke_v3.json phase1_pass=False human_review_complete=False
 
 ---
 *Regenerate: `make status-report` atau `bash scripts/generate_status.sh`.*
