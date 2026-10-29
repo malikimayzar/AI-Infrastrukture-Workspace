@@ -173,3 +173,11 @@ Lihat [`docs/README.md`](README.md) untuk indeks lengkap. Kategori: Status/Roadm
 **Open (untuk operator, bukan kode):**
 - `phase1_pass=false` + `human_review_complete=false` — anotasi review manusia harus dijalankan sendiri: `make -C rag-research phase1-review` (interaktif, tanpa LLM) → `make -C rag-research phase1-check` → regen `make status-report`. Target: 0 FAIL penuh di STATUS.
 - 2 WARN per STATUS (lihat bagian WARN STATUS.md terbaru).
+
+## 2026-10-29 — R-2 lock kontrak /verify_claim (opencode)
+
+| # | Tugas | Owner | Branch | Scope file | DoD | Status |
+|---|---|---|---|---|---|---|
+| 12 | Kunci kontrak R-2: assert `calibrated_confidence` + `span_level_attribution` + mirror abstain F-01 | **opencode** | `remediation/2026-10-24` | `rag-research/tests/test_verify_claim_contract.py` | 10/10 test hijau; 5/5 field kontrak ter-assert | ✅ selesai |
+
+**Bukti terukur:** implementasi sudah penuh (model punya 5 field, `verify_claim` retrieval+confidence-only — generator tidak ada di jalur, abstain → `span_level_attribution=[]`); test dikunci: abstain → `calibrated_confidence==0.1`, `span_level_attribution==[]`, answer → `0.85` + `attrib[0].chunk_id=="c1"` (perilaku nyata `attribute_claims_to_chunks` diprobe dulu). Commit rag `a6e2eb2`, pointer `ceb4efb`.
