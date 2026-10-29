@@ -30,6 +30,7 @@
 | Arxiv ingestion/metadata | **Pertahankan** | Unik; tidak ada duplikasi | — |
 | Qdrant collection & Postgres table ownership | **Pertahankan** | Sudah dipisah dengan benar; tidak ada tabrakan | — |
 | Rename tool MCP | **Tunda ke P1** | Butuh persetujuan kontrak; P0 cukup memperbaiki deskripsi | 7 |
+| `generate_audit_dossier` → dossier sungguhan | **Didiangkan ke Vertical 1 P0** *(addendum 2026-10-29)* | Keputusan arah produk SaaS Dossier-First menjadikan dossier sungguhan prasyarat permukaan laporan; lihat [`docs/business/decision-2026-10-29-dossier-first.md`](../../business/decision-2026-10-29-dossier-first.md) | 7 |
 
 ---
 

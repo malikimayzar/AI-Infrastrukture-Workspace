@@ -1,6 +1,6 @@
 # Roadmap — Scientific Claim & Prior-Art Auditor
 
-> **Last Updated:** 2026-10-26
+> **Last Updated:** 2026-10-29
 > **Source of Truth:** This is the single consolidated roadmap. All other docs reference this file.
 
 ## Overview
@@ -59,6 +59,17 @@ This workspace builds a **Scientific Claim & Prior-Art Auditor** with a focus on
 - [ ] Export reports in Markdown/PDF/JSON format
 - [ ] Per-claim attribution with source IDs and scores
 - [ ] Audit trail view (request ID, evidence chain, timestamps)
+
+## Vertical 1 — Laporan Verifikasi Klaim (Dossier-First SaaS) (PLANNED 🔵)
+*Decided 2026-10-29. Full rationale & per-repo outputs: [`docs/business/decision-2026-10-29-dossier-first.md`](business/decision-2026-10-29-dossier-first.md).*
+
+Keputusan arah produk: identitas = **SaaS** (laporan audit manusia di browser), MCP tetap sebagai kanal distribusi (tools tetap live, hasil tool membawa `report_url`). Fase 4 di atas dilipat ke dalam vertical ini (narrow scope dulu, diperluas bertahap):
+
+- **P0 (MVP):** paste-klaim → audit per klaim (`verify_claim(s)` batch) → laporan di browser + `export.md/.json` + `GET /r/{share_token}` read-only. Tanpa billing, tanpa unggah file. Prasyarat: benahi `generate_audit_dossier` menjadi dossier sungguhan (dari P0-consolidation task 7).
+- **P1:** `export.pdf`, unggah DOCX, workspace riwayat per org, fondasi multi-tenancy (`api_keys → org_id`), refit kalibrasi dari audit terkumpul, `report_url` di jalur MCP.
+- **P2:** connector korpus paten USPTO/EPO (prasyarat niche patent-firm), billing, SSO, format ekspor USPTO/EPO, tier harga $100/audit → $1.000/bln per tim.
+
+Gate tetap: `make test` 100% PASS, `check-secrets` CLEAN, P95 ≤ 4.5 s per klaim, ownership repo tak dilanggar.
 
 ## Cross-Cutting Features (COMPLETED ✅)
 

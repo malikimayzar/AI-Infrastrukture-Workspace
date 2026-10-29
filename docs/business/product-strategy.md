@@ -22,6 +22,18 @@
 
 ## Executive Summary
 
+> **⚠️ DECISION RECORD 2026-10-29 — supersedes primary ranking below.**
+> Hasil debat arah produk: identitas produk ditetapkan **SaaS Dossier-First**
+> (laporan audit manusia di browser sebagai permukaan utama), dengan **MCP tetap hidup
+> sebagai kanal distribusi** (bukan dibuang). Alasan penilaian ulang skoring: kriteria
+> yang dipakai pengguna: (1) nilai jual sekarang, (2) pengembangan berkala, (3) anti
+> tergantikan — dan skor "Moat HIGH (protocol)" pada matrix berikut adalah yang paling
+> rapuh (tool/API tipis mudah diduplikasi vendor; yang bertahan adalah aset vertikal:
+> data berlabel, audit trail kepatuhan, kunci workflow). Niche patent-firm **terkunci
+> belakang** pada prasyarat korpus paten (USPTO/EPO) — tidak dijual dengan korpus
+> arXiv saja.
+> Detail & per-repo outputs: [`decision-2026-10-29-dossier-first.md`](decision-2026-10-29-dossier-first.md).
+
 **Core Philosophy:** "If evidence is insufficient, refusing to answer is correct engineering."
 
 The platform's primary differentiator is **zero-tolerance hallucination** with **span-level attribution** and **hard abstention**. Unlike competitors that prioritize helpfulness over accuracy, this system refuses to hallucinate, making it ideal for mission-critical applications where factual correctness is non-negotiable.

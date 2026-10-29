@@ -1,7 +1,7 @@
 # AGENTS.md — AI Agent Guide for AI Infrastructure Workspace
 
 > **Purpose:** Guide for AI agents (Devin, OpenCode, Aider, etc.) working in this workspace.
-> **Last Updated:** 2026-10-24
+> **Last Updated:** 2026-10-29
 > **Workspace:** `ai-infra-workspace` (4 submodules: arxiv-research-assistant, mcp-gateway, rag-research, llm-eval-framework)
 
 ---
@@ -380,7 +380,7 @@ curl http://localhost:8000/health    # rag-api
 
 > **Source of Truth:** [`docs/ROADMAP.md`](docs/ROADMAP.md) — single consolidated roadmap.
 
-**Current Status:** Phase 1 acceptance pending. Phase 4 (Claim Audit UI) not started. Auth + rate limiting active. Confidence calibration ECE 0.0576. Rust reranker optimized (1.4x-2.0x speedup). OpenTelemetry tracing (opt-in). Circuit breaker (closed/open/half-open). Graceful shutdown (30s). API key rotation. OpenAPI spec. CI/CD pipeline. Connection pooling. Per-key rate limits. Custom Grafana dashboard. Alerting rules (10 rules). E2E MCP smoke test 16/16 PASS.
+**Current Status:** Phase 1–3 selesai (921 test PASS; MCP E2E 16/16 — `docs/ROADMAP.md` = sumber status tunggal). Fase 4 (Claim Audit UI) belum dimulai. Arah produk 2026-10-29: SaaS Dossier-First, MCP sebagai kanal (`docs/business/decision-2026-10-29-dossier-first.md`). Auth + rate limiting aktif. Kalibrasi ECE 0.0576. Rust reranker 1.4x–2.0x. OpenTelemetry (opt-in), circuit breaker, graceful shutdown 30s, rotasi API key, OpenAPI spec, CI/CD, connection pooling, per-key rate limits, dashboard Grafana kustom, 10 rule alerting.
 
 See [`docs/ROADMAP.md`](docs/ROADMAP.md) for full details.
 
@@ -399,7 +399,7 @@ Before claiming production readiness, ensure:
 - [ ] **Dataset Size:** Evaluation dataset ≥ 200 labeled queries
 - [ ] **Latency Verified:** End-to-end P95 ≤ 3.5s measured on deployment hardware
 
-**Current Status:** Phase 1 acceptance pending. Phase 4 (Claim Audit UI) not started. Auth + rate limiting active. Confidence calibration ECE 0.0576. Rust reranker optimized (1.4x-2.0x speedup). OpenTelemetry tracing (opt-in). Circuit breaker (closed/open/half-open). Graceful shutdown (30s). API key rotation. OpenAPI spec. CI/CD pipeline. Connection pooling. Per-key rate limits. Custom Grafana dashboard. Alerting rules (10 rules). E2E MCP smoke test 16/16 PASS.
+**Current Status:** Phase 1–3 selesai (921 test PASS; MCP E2E 16/16 — `docs/ROADMAP.md` = sumber status tunggal). Fase 4 (Claim Audit UI) belum dimulai. Arah produk 2026-10-29: SaaS Dossier-First, MCP sebagai kanal (`docs/business/decision-2026-10-29-dossier-first.md`). Auth + rate limiting aktif. Kalibrasi ECE 0.0576. Rust reranker 1.4x–2.0x. OpenTelemetry (opt-in), circuit breaker, graceful shutdown 30s, rotasi API key, OpenAPI spec, CI/CD, connection pooling, per-key rate limits, dashboard Grafana kustom, 10 rule alerting.
 
 ---
 

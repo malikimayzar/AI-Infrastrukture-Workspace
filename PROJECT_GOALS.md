@@ -2,7 +2,7 @@
 > **Project Title:** Scientific Claim & Prior-Art Auditor (Autonomous Research Grounding & Audit Engine)
 > **Workspace:** `ai-infra-workspace` (Orchestrating `arxiv-research-assistant`, `mcp-gateway`, `rag-research`, `llm-eval-framework`)
 > **Version:** 1.0.0
-> **Status:** Phase 1 acceptance pending. Phase 4 (Claim Audit UI) not started. See `docs/ROADMAP.md` for full roadmap. Confidence calibration ECE 0.0576. Span-level attribution implemented. Auth + rate limiting active. E2E MCP smoke test 16/16 PASS.
+> **Status:** Phase 1–3 selesai (921 test PASS; MCP E2E 16/16 — lihat `docs/ROADMAP.md` sebagai sumber status tunggal). Fase 4 (Claim Audit UI) belum dimulai. Keputusan arah produk 2026-10-29: [docs/business/decision-2026-10-29-dossier-first.md](docs/business/decision-2026-10-29-dossier-first.md).
 > **Last Updated:** 2026-10-26
 
 ---
@@ -167,6 +167,49 @@ Ketika skor kepercayaan retrieval di bawah ambang batas:
   "evaluation_status": "skipped",
   "evaluation": null
 }
+```
+
+### 4.4 Verifikasi Klaim Manuskrip (RAG-Research, *planned — Vertical 1 P0*)
+
+Input teks klaim bebas dari naskah user (bukan query korpus). Satu klaim = satu audit; keputusan dan zona keyakinan mengikuti §6.
+
+```json
+// POST /verify_claim  (dan POST /verify_claims untuk batch, array "claims")
+{ "claim": "Multi-head attention mengurangi bias representasi spasial.", "top_k": 5 }
+→ {
+  "decision": "answer | abstain",
+  "calibrated_confidence": 0.88,
+  "confidence_zone": "green",
+  "evidence": [{ "chunk_id": "doc_s0014", "source_id": "arxiv:1706.03762", "text": "…", "score": 0.8845 }],
+  "span_level_attribution": [{ "claim": "…", "chunk_id": "doc_s0014", "score": 0.92 }]
+}
+```
+
+### 4.5 Evaluasi Batch Evaluator (llm-eval-framework, *planned — Vertical 1 P0*)
+
+```json
+// POST /evaluate_batch — N pasangan klaim-konteks; hasil per klaim + ringkasan
+{ "items": [{ "claim": "…", "context": "…" }] }
+→ { "results": [{ "claim_index": 0, "faithfulness_score": 0.94, "failure_mode": "none", "supported_claims": 3, "total_claims": 3 }],
+    "summary": { "avg_faithfulness": 0.91, "supported_pct": 0.80, "partial_pct": 0.10, "unsupported_pct": 0.10 } }
+```
+
+### 4.6 Siklus Hidup Laporan Audit (mcp-gateway, *planned — Vertical 1 P0*)
+
+```text
+POST /reports              → { report_id, status }         (klaim paste; unggah DOCX = P1)
+GET  /reports/{id}         → status + per-klaim + ringkasan evaluasi
+GET  /reports/{id}/export.md | /export.json   (P0)   /export.pdf (P1)
+GET  /r/{share_token}      → laporan read-only publik, tanpa login
+```
+
+Persistensi baru: tabel `audit_reports` (id, api_key_tier, status, claim_count, summary, share_hash, timestamps) + `audit_report_claims` (per-klaim, referensi evidence). Scoping per API key tanpa multi-tenancy penuh di P0. Jalur MCP `generate_audit_dossier` dipoles menjadi laporan sungguhan dan boleh membawa `report_url` (lihat [p0-consolidation addendum](docs/superpowers/plans/2026-10-26-p0-consolidation.md)).
+
+### 4.7 Enrich Sitasi Resmi (arxiv-research-assistant, *planned — Vertical 1 P0*)
+
+```json
+// GET /papers/source/{arxiv_id} — metadata untuk bibliografi laporan
+{ "source_id": "arxiv:1706.03762", "title": "Attention Is All You Need", "authors": ["…"], "year": 2017, "url": "https://arxiv.org/abs/1706.03762" }
 ```
 
 ---

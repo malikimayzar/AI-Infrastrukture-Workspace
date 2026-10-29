@@ -55,6 +55,7 @@ host mengakses Ollama container melalui :11435
 
 * Spesifikasi dan Tujuan Lengkap: [`PROJECT_GOALS.md`](PROJECT_GOALS.md)
 * Roadmap & Status: [`docs/ROADMAP.md`](docs/ROADMAP.md)
+* Keputusan Arah Produk (Dossier-First SaaS): [`docs/business/decision-2026-10-29-dossier-first.md`](docs/business/decision-2026-10-29-dossier-first.md)
 * Panduan Operasional: [`docs/OPERATIONS.md`](docs/OPERATIONS.md)
 * Panduan MCP: [`docs/mcp-integration-guide.md`](docs/mcp-integration-guide.md)
 * Kalibrasi Confidence: [`docs/confidence-calibration.md`](docs/confidence-calibration.md)
