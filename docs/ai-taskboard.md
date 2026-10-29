@@ -84,3 +84,21 @@ Rincian command, output, dan verdict ada di
 - Kilo cukup menjalankan targeted test selama bekerja; `make test` penuh dan
   `make status-report` dijalankan integrator agar tidak ada dua proses berat
   bersamaan.
+
+## 2026-10-29 — Tutup bukti mcp-gateway (opencode, Fase 0)
+
+| # | Tugas | Owner | Branch | Scope file | DoD | Status |
+|---|---|---|---|---|---|---|
+| 10 | Tutup bukti mcp-gateway (maskDSN + RAG abstain) | **opencode** | `remediation/2026-10-24` | `mcp-gateway/cmd/server/main.go`, `mcp-gateway/cmd/server/respond.go`, `mcp-gateway/internal/api/contract.go`, `mcp-gateway/internal/planner/executor.go`, `mcp-gateway/cmd/server/p0_p2_regression_test.go` | test bukti merah→hijau, suite race hijau, pointer bump | ✅ selesai |
+
+**Bukti terukur:**
+- Test baru: `TestMaskDSN_HidesPassword`, `TestMaskDSN_Empty`, `TestToResponse_RAGSentinelAnswerIsAbstention`, `TestToResponse_RAGSentinelAnswerTextOnlyIsAbstention` — disaksikan merah (maskDSN leak password; abstain → answer) lalu hijau setelah fix.
+- `go test ./... -race -count=1` (mcp-gateway): semua 11 package PASS.
+- `make check-secrets`: CLEAN.
+- Commit submodule: `b538155` (opencode: fix maskDSN masking + RAG abstain text detection).
+- Commit root pointer bump: `285ed72` (chore: bump mcp-gateway pointer).
+- `make status-report`: 2 FAIL tersisa (calibration container stopped; phase1 smoke quality) — sesuai rencana, bukan bug kode. Security (Binary tracked/Secret scan) PASS.
+
+**Risiko:** perubahan threshold config rag-research (0.25→0.35) ditanggung di track terpisah (commit `a2256ea`, pointer `5ef5144`).
+
+**Yang tidak diubah:** tidak ada fitur vertical-1 baru; docker-compose tidak disentuh; hanya file scope di atas + test file.
