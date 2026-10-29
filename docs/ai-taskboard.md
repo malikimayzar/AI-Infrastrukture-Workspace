@@ -181,3 +181,18 @@ Lihat [`docs/README.md`](README.md) untuk indeks lengkap. Kategori: Status/Roadm
 | 12 | Kunci kontrak R-2: assert `calibrated_confidence` + `span_level_attribution` + mirror abstain F-01 | **opencode** | `remediation/2026-10-24` | `rag-research/tests/test_verify_claim_contract.py` | 10/10 test hijau; 5/5 field kontrak ter-assert | ✅ selesai |
 
 **Bukti terukur:** implementasi sudah penuh (model punya 5 field, `verify_claim` retrieval+confidence-only — generator tidak ada di jalur, abstain → `span_level_attribution=[]`); test dikunci: abstain → `calibrated_confidence==0.1`, `span_level_attribution==[]`, answer → `0.85` + `attrib[0].chunk_id=="c1"` (perilaku nyata `attribute_claims_to_chunks` diprobe dulu). Commit rag `a6e2eb2`, pointer `ceb4efb`.
+
+## 2026-10-29 — Validasi live /reports + fix NULL-tier scan (opencode)
+
+| # | Tugas | Owner | Branch | Scope file | DoD | Status |
+|---|---|---|---|---|---|---|
+| 13 | Lifecycle /reports live end-to-end + hardening pintu | **opencode** (+ kilo WIP di-*folding*) | `remediation/2026-10-24` | `mcp-gateway/internal/store/postgres.go`, `cmd/server/reports.go`, `cmd/server/reports_contract_test.go`, `internal/audit/audit.go`, `internal/mcp/tools.go` | POST→GET→share→export semua 200; bogus-id 400; unknown share 404; suite race hijau | ✅ selesai |
+
+**Bukti terukur:**
+- **Akar (3 gejala, 1 penyebab):** `api_key_tier` NULL di DB (dari `nullIfEmpty(tier)` pada tier kosong) → `GetAuditReport` scan NULL ke `string` → GET 500, `/r/{token}` 404, owejnya export 404 **kaskade**. Fix: scan `sql.NullString` di `GetAuditReport` (`postgres.go`).
+- **Hardening:** validasi UUID (`reportIDPattern`) → 400 invalid id; cap 50 klaim di pintu → 400; sanitasi 500 (`err.Error()` → pesan generik + log server); dead code `postJSONHTTP/getJSON/generateShareToken` + `var _ = time.Now` dihapus; 2 test kontrak baru (invalid-id 400, over-cap 400).
+- **Nota koordinasi:** WIP kilo yang *complete+race-green* (`BuildReport` → 4 return +dossier; tool MCP kembalikan dossier) di-*folding* dalam satu commit dengan atribusi eksplisit — dipilih daripada membiarkan caller 4-arg ter-commit tanpa isinya (gagal compile dari checkout bersih).
+- **Commit**: gw `c95b8be` (5 file), root pointer `cc6f148`; `go test ./... -race` 11 pkg ok 0 FAIL (pada pohon gabungan).
+- **Live** (image di-rebuild): POST 201 (conf 0.898/zona hijau) → GET 200 full claims → `/r/{token}` 200 → unknown 404 → `not-a-uuid` 400 → export.md 200 `text/markdown`.
+
+**Open (P1):** tier provenance dari keyStore (bukan header klien), `export.md` render per-klaim (masih stub 1-baris), `evaluation` tersimpan sebagai JSON-string (rapikan jadi jsonb penuh), target `make smoke-reports`.
