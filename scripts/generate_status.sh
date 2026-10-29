@@ -664,8 +664,14 @@ def add(check, status, evidence):
     with open(rows_path, "a", encoding="utf-8") as handle:
         handle.write(f"Quality Gates\t{check}\t{status}\t{evidence}\n")
 
-pattern = os.path.join(root, "rag-research/results/metrics/archive/phase1_smoke_v3_*.json")
-files = sorted(glob.glob(pattern), key=os.path.getmtime)
+# Canonical artifact first; archive glob only as historical fallback so a
+# successful latest run is never shadowed by a stale pre-run archive copy.
+canonical = os.path.join(root, "rag-research/results/metrics/phase1_smoke_v3.json")
+archive_pattern = os.path.join(root, "rag-research/results/metrics/archive/phase1_smoke_v3_*.json")
+if os.path.exists(canonical):
+    files = [canonical]
+else:
+    files = sorted(glob.glob(archive_pattern), key=os.path.getmtime)
 if not files:
     add("Phase 1 smoke (v3)", "SKIP", "tidak ada artefak")
 else:
