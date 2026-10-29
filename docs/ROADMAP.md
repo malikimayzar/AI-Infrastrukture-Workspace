@@ -62,6 +62,7 @@ This workspace builds a **Scientific Claim & Prior-Art Auditor** with a focus on
 
 ## Vertical 1 — Laporan Verifikasi Klaim (Dossier-First SaaS) (PLANNED 🔵)
 *Decided 2026-10-29. Full rationale & per-repo outputs: [`docs/business/decision-2026-10-29-dossier-first.md`](business/decision-2026-10-29-dossier-first.md).*
+*Goals per repo (spec anchor P0): [`docs/vertical-1/GOALS-PER-REPO.md`](vertical-1/GOALS-PER-REPO.md).*
 
 Keputusan arah produk: identitas = **SaaS** (laporan audit manusia di browser), MCP tetap sebagai kanal distribusi (tools tetap live, hasil tool membawa `report_url`). Fase 4 di atas dilipat ke dalam vertical ini (narrow scope dulu, diperluas bertahap):
 

@@ -10,6 +10,7 @@
 > **Konteks:** debat arah "agentic vs SaaS", kemudian kriteria eksplisit dari owner:
 > nilai jual tinggi **sekarang**, bisa dikembangkan **berkala**, dan **tidak mudah
 > tergantikan** oleh tool yang terus diperbarui.
+> **Turunan berikutnya:** goals per-repo + urut bangun: [`docs/vertical-1/GOALS-PER-REPO.md`](../vertical-1/GOALS-PER-REPO.md).
 
 ---
 

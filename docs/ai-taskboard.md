@@ -3,6 +3,10 @@
 Protokol: **klaim tugas → tulis LOCK → kerja → lapor commit hash → integrator
 review/push**. Satu penulis per file/repo. Lihat `CONVENTIONS.md`.
 
+| # | Tugas | Owner | Branch | Scope file | DoD | Status |
+|---|---|---|---|---|---|---|
+| 8 | Goals per-repo Vertical 1 (spec anchor P0) | opencode | root | `docs/vertical-1/GOALS-PER-REPO.md`, `docs/ROADMAP.md`, `docs/business/decision-2026-10-29-dossier-first.md` | dokumen goals per repo konsisten dgn decision record + kontrak §4.4–4.7 | ✅ 2026-10-29 (root scope, integrator) |
+
 ## Status
 
 | # | Tugas | Owner | Branch | Scope file | DoD | Status |
