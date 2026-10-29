@@ -110,14 +110,12 @@ Verify a factual claim against the RAG corpus with span-level attribution.
 **Response:** Answer with evidence chunks, confidence score, and hard abstention if insufficient evidence
 
 ### 3. generate_audit_dossier
-Generate an audit dossier by evaluating an answer against evidence.
+Generate a real audit dossier: per-claim verification with metrics, evidence, span attribution, evaluation, and report_url.
 
 **Parameters:**
-- `question` (string, required): Original question or claim
-- `answer` (string, required): Answer to evaluate
-- `context` (string, required): Evidence context used to generate the answer
+- `claims` (array of strings, required): List of claims to audit (1-50)
 
-**Response:** Faithfulness score, supported claims, failure mode
+**Response:** Dossier with `report_id`, `report_url`, `status`, `claim_count`, `metrics` (supported/abstained/avg_faithfulness/etc.), and `claims[]` (per-claim decision, confidence_zone, calibrated_confidence, evidence, span_attribution, evaluation). Persisted report retrievable via `/reports/{id}` and share link `/r/{share_token}`.
 
 ---
 

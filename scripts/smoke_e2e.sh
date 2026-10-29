@@ -246,6 +246,57 @@ done
 
 log "Query logs verified for run $RUN_ID"
 
+# ── Step 5: Reports contract + share link ────────────────────────────────
+
+log "Step 5: Reports — create, fetch, export, and share-link"
+
+REPORTS_RESPONSE=$(curl -sf --max-time 120 -X POST "$GATEWAY_URL/reports" \
+  -H "Content-Type: application/json" \
+  -d "{\"claims\": [\"arXiv papers are a preprint repository for scientific research\"]}" 2>&1) \
+  || err "POST /reports failed: $REPORTS_RESPONSE"
+
+REPORT_ID=$(echo "$REPORTS_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('report_id',''))") \
+  || err "Failed to parse report_id from /reports response"
+SHARE_TOKEN=$(echo "$REPORTS_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('share_token',''))") \
+  || err "Failed to parse share_token from /reports response"
+REPORT_STATUS=$(echo "$REPORTS_RESPONSE" | python3 -c "import sys,json; print(json.load(sys.stdin).get('status',''))") \
+  || err "Failed to parse status from /reports response"
+
+[ -n "$REPORT_ID" ] || err "POST /reports returned empty report_id"
+[ "$REPORT_STATUS" = "completed" ] || err "POST /reports status: expected completed, got $REPORT_STATUS"
+[ -n "$SHARE_TOKEN" ] || err "POST /reports returned empty share_token"
+
+log "Report created: id=$REPORT_ID status=$REPORT_STATUS token=$SHARE_TOKEN"
+
+# GET /reports/{id}
+GET_REPORT=$(curl -sf --max-time 60 "$GATEWAY_URL/reports/$REPORT_ID" 2>&1) \
+  || err "GET /reports/$REPORT_ID failed: $GET_REPORT"
+GET_STATUS=$(echo "$GET_REPORT" | python3 -c "import sys,json; print(json.load(sys.stdin).get('status',''))") \
+  || err "Failed to parse status from GET /reports"
+[ "$GET_STATUS" = "completed" ] || err "GET /reports status: expected completed, got $GET_STATUS"
+log "GET /reports/$REPORT_ID -> status=$GET_STATUS ✓"
+
+# GET /reports/{id}/export.md
+EXPORT_MD=$(curl -sf --max-time 60 "$GATEWAY_URL/reports/$REPORT_ID/export.md" 2>&1) \
+  || err "GET /reports/$REPORT_ID/export.md failed: $EXPORT_MD"
+echo "$EXPORT_MD" | grep -q "Audit Report" || err "export.md missing report header"
+echo "$EXPORT_MD" | grep -q "$REPORT_ID" || err "export.md missing report_id"
+log "GET /reports/$REPORT_ID/export.md -> contains report header + id ✓"
+
+# GET /r/{share_token}
+SHARE_RESP=$(curl -sf --max-time 60 "$GATEWAY_URL/r/$SHARE_TOKEN" 2>&1) \
+  || err "GET /r/$SHARE_TOKEN failed: $SHARE_RESP"
+SHARE_ID=$(echo "$SHARE_RESP" | python3 -c "import sys,json; print(json.load(sys.stdin).get('report_id',''))") \
+  || err "Failed to parse report_id from share link"
+[ "$SHARE_ID" = "$REPORT_ID" ] || err "share link report_id mismatch: $SHARE_ID != $REPORT_ID"
+log "GET /r/$SHARE_TOKEN -> report_id=$SHARE_ID ✓"
+
+# Verify audit_reports row persisted in PostgreSQL
+wait_for_count \
+  "SELECT COUNT(*) FROM audit_reports WHERE id = '$REPORT_ID';" \
+  1 "audit_reports row"
+log "audit_reports row persisted for id=$REPORT_ID ✓"
+
 # ── Done ───────────────────────────────────────────────────────────────
 
 log ""
@@ -260,4 +311,5 @@ log "  Query backend: $BACKEND"
 log "  Answer length: ${#ANSWER} chars"
 log "  RAG contract:  decision=$RAG_DECISION eval=$RAG_EVAL"
 log "  Query logs:    gateway + arxiv rows verified"
+log "  Reports:       id=$REPORT_ID token=$SHARE_TOKEN persisted ✓"
 log "=============================================="

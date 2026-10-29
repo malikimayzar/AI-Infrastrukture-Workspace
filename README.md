@@ -34,6 +34,7 @@ make smoke-e2e                # Ingest → query → verify logs
 | [`CONVENTIONS.md`](CONVENTIONS.md) | Collaboration rules |
 | [`docs/mcp-integration-guide.md`](docs/mcp-integration-guide.md) | MCP transport & integration guide |
 | [`docs/confidence-calibration.md`](docs/confidence-calibration.md) | Confidence calibration guide |
+| [`docs/README.md`](docs/README.md) | **Indeks dokumentasi** — navigasi semua docs by kategori |
 
 ## Testing
 

@@ -114,6 +114,9 @@ pull-models:  ## Pull required Ollama models (inside the ws-ollama container, no
 smoke-e2e:  ## Run end-to-end smoke test (ingest → query → evaluate)
 	bash scripts/smoke_e2e.sh
 
+smoke-reports:  ## Run reports-focused smoke test (POST /reports → export.md → /r/{token} → audit_reports row)
+	bash scripts/smoke_e2e.sh
+
 # ──────────────────────────────────────────────────────────────────────
 # Security (P0 pipeline)
 # ──────────────────────────────────────────────────────────────────────
