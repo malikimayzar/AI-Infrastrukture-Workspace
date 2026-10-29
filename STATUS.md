@@ -1,9 +1,9 @@
 # Project Status
 
-> **Generated:** 2026-10-29T16:31:08+07:00
-> **Commit:** cf4a808
+> **Generated:** 2026-10-29T17:26:46+07:00
+> **Commit:** 285ed72
 > **Branch:** remediation/2026-10-24
-> **Working tree:** 8 perubahan
+> **Working tree:** 2 perubahan
 
 > File ini di-generate oleh `scripts/generate_status.sh` dari eksekusi nyata.
 > Jangan edit manual — jalankan ulang generatornya.
@@ -36,7 +36,7 @@
 | Check | Status | Evidence |
 |---|---|---|
 | arxiv Go — collected | ✅ PASS | 22 test |
-| mcp-gateway — collected | ✅ PASS | 193 test |
+| mcp-gateway — collected | ✅ PASS | 197 test |
 | arxiv python-ml — collected | ✅ PASS | 48 test |
 | llm-eval — collected | ✅ PASS | 228 test |
 | rag-research — collected | ✅ PASS | 526 test |
@@ -101,7 +101,7 @@
 
 | Check | Status | Evidence |
 |---|---|---|
-| Jumlah file .md | ℹ️ INFO | 215 |
+| Jumlah file .md | ℹ️ INFO | 217 |
 | Link internal rusak | ✅ PASS | 0 link rusak |
 | README -> docs/ARCHITECTURE.md | ✅ PASS | tidak dirujuk |
 | Dokumen status ganda | ⚠️ WARN | PROJECT_CONTEXT.md, docs/ROADMAP.md, STATUS.md |
