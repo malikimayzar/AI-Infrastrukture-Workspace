@@ -49,7 +49,7 @@ Perbaikan build yang lahir dari verifikasi ini:
 
 ### 1. Secrets
 
-```text
+```**text**
 ✅ CLEAN — no tracked credential leaks found
 ```
 
@@ -69,7 +69,7 @@ dan placeholder pada empat `.env.example`; exit code 0.
 | `llm-eval-framework` | 226 | 0 |
 | `rag-research` | 469 | 0 |
 | **Total** | **898** | **0** |
-
+z
 ### 3. Clean build
 
 ```text
