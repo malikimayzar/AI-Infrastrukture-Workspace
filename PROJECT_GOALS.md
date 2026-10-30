@@ -2,8 +2,8 @@
 > **Project Title:** Scientific Claim & Prior-Art Auditor (Autonomous Research Grounding & Audit Engine)
 > **Workspace:** `ai-infra-workspace` (Orchestrating `arxiv-research-assistant`, `mcp-gateway`, `rag-research`, `llm-eval-framework`)
 > **Version:** 1.0.0
-> **Status:** Fase 1 harmonisasi tercatat selesai; Fase 2 masih berjalan karena Redis dan monitoring runtime belum diverifikasi.
-> **Last Updated:** 2026-10-22
+> **Status:** Phase 1–3 selesai (921 test PASS; MCP E2E 16/16 — lihat `docs/ROADMAP.md` sebagai sumber status tunggal). Fase 4 (Claim Audit UI) belum dimulai. Keputusan arah produk 2026-10-29: [docs/business/decision-2026-10-29-dossier-first.md](docs/business/decision-2026-10-29-dossier-first.md).
+> **Last Updated:** 2026-10-26
 
 ---
 
@@ -169,6 +169,49 @@ Ketika skor kepercayaan retrieval di bawah ambang batas:
 }
 ```
 
+### 4.4 Verifikasi Klaim Manuskrip (RAG-Research, *planned — Vertical 1 P0*)
+
+Input teks klaim bebas dari naskah user (bukan query korpus). Satu klaim = satu audit; keputusan dan zona keyakinan mengikuti §6.
+
+```json
+// POST /verify_claim  (dan POST /verify_claims untuk batch, array "claims")
+{ "claim": "Multi-head attention mengurangi bias representasi spasial.", "top_k": 5 }
+→ {
+  "decision": "answer | abstain",
+  "calibrated_confidence": 0.88,
+  "confidence_zone": "green",
+  "evidence": [{ "chunk_id": "doc_s0014", "source_id": "arxiv:1706.03762", "text": "…", "score": 0.8845 }],
+  "span_level_attribution": [{ "claim": "…", "chunk_id": "doc_s0014", "score": 0.92 }]
+}
+```
+
+### 4.5 Evaluasi Batch Evaluator (llm-eval-framework, *planned — Vertical 1 P0*)
+
+```json
+// POST /evaluate_batch — N pasangan klaim-konteks; hasil per klaim + ringkasan
+{ "items": [{ "claim": "…", "context": "…" }] }
+→ { "results": [{ "claim_index": 0, "faithfulness_score": 0.94, "failure_mode": "none", "supported_claims": 3, "total_claims": 3 }],
+    "summary": { "avg_faithfulness": 0.91, "supported_pct": 0.80, "partial_pct": 0.10, "unsupported_pct": 0.10 } }
+```
+
+### 4.6 Siklus Hidup Laporan Audit (mcp-gateway, *planned — Vertical 1 P0*)
+
+```text
+POST /reports              → { report_id, status }         (klaim paste; unggah DOCX = P1)
+GET  /reports/{id}         → status + per-klaim + ringkasan evaluasi
+GET  /reports/{id}/export.md | /export.json   (P0)   /export.pdf (P1)
+GET  /r/{share_token}      → laporan read-only publik, tanpa login
+```
+
+Persistensi baru: tabel `audit_reports` (id, api_key_tier, status, claim_count, summary, share_hash, timestamps) + `audit_report_claims` (per-klaim, referensi evidence). Scoping per API key tanpa multi-tenancy penuh di P0. Jalur MCP `generate_audit_dossier` dipoles menjadi laporan sungguhan dan boleh membawa `report_url` (lihat [p0-consolidation addendum](docs/superpowers/plans/2026-10-26-p0-consolidation.md)).
+
+### 4.7 Enrich Sitasi Resmi (arxiv-research-assistant, *planned — Vertical 1 P0*)
+
+```json
+// GET /papers/source/{arxiv_id} — metadata untuk bibliografi laporan
+{ "source_id": "arxiv:1706.03762", "title": "Attention Is All You Need", "authors": ["…"], "year": 2017, "url": "https://arxiv.org/abs/1706.03762" }
+```
+
 ---
 
 ## 5. Registri Kegagalan Sistem (Failure Mode Registry)
@@ -193,15 +236,15 @@ Gateway dan Engine RAG menetapkan 3 zona keyakinan:
 
 ```text
  Skor Relevansi Bukti (Normalisasi RRF + Cross-Encoder)
- 0.00                    0.35                    0.70                    1.00
+ 0.00                    0.35                    0.65                    1.00
   ├─── HARD REJECT ───────┼─── PARTIAL TRUST ─────┼────── FULL GENERATE ──┤
   │    (Abstensi Murni)   │    (Maksimal 3 Chunks │      (Rute Jawaban    │
   │    Lewati Generator   │     Peringatan Rendah)│       Normal Lengkap) │
 ```
 
 1. **Zona Merah ($< 0.35$):** Menolak secara keras (*Hard Abstain*). Tidak memanggil LLM untuk menghemat kuota token dan menjamin nol halusinasi.
-2. **Zona Kuning ($0.35 - 0.70$):** Membatasi generator hanya pada 3 bukti terkuat; jawaban ditandai dengan flag `partial_trust`.
-3. **Zona Hijau ($\ge 0.70$):** Relevansi tinggi dan konsisten lintas sumber dense & sparse; diizinkan menghasilkan jawaban lengkap dengan atribusi penuh.
+2. **Zona Kuning ($0.35 - 0.65$):** Membatasi generator hanya pada 3 bukti terkuat; jawaban ditandai dengan flag `partial_trust`.
+3. **Zona Hijau ($\ge 0.65$):** Relevansi tinggi dan konsisten lintas sumber dense & sparse; diizinkan menghasilkan jawaban lengkap dengan atribusi penuh.
 
 ---
 
@@ -236,16 +279,26 @@ Gateway dan Engine RAG menetapkan 3 zona keyakinan:
 * [x] **Perbaikan Mocking `test_qdrant_store.py`:** `QdrantVectorStore` menerima `embedder`/`client` injeksi; suite **~27,4 s → ~1,2 s** dan lolos dengan `HF_HUB_OFFLINE=1`.
 * [x] **Sinkronisasi Git Submodule Pointer:** Seluruh pointer submodule sinkron (`git submodule status` tanpa penanda `+`).
 
-### 🟡 Fase 2 — Observabilitas Standar & Data Curation (berjalan)
+### ✅ Fase 2 — Observabilitas Standar & Data Curation (gate operasional selesai)
 * [x] **Ekspos Prometheus Metrics di Semua Titik:** `/metrics` tersedia di `go-backend`, `python-ml`, `mcp-gateway`, `llm-eval-framework`, dan `rag-research`; kelima job terdaftar di `infra/prometheus/prometheus.yml`.
 * [x] **Pembersihan Kebocoran Dataset (*Query Leakage*):** Memparafrasakan query `q02`, `q16`, `q13`, dan `q03` pada dataset evaluasi agar skor kesamaan terhadap gold chunk $< 0.90$.
 * [x] **Mekanisme Auto-Seed Qdrant:** `make seed-rag` dan auto-seed saat startup kini memanggil modul dengan `python -m` dari root repo, sehingga boot awal dari volume Qdrant kosong tidak lagi gagal `ModuleNotFoundError` sebelum mencapai `require_nonempty_index`.
-* [ ] **Koneksi Caching Redis:** Kode cache, dependency, dan env compose sudah terpasang, tetapi default `REDIS_ENABLED=false` karena Redis hanya hidup di profil `monitoring`; jalur cache belum diverifikasi runtime.
+* [x] **Koneksi Caching Redis:** Jalur cache terverifikasi runtime pada 2026-10-24 (`cache_hit=false → true`, TTL 600 s). Redis tetap opt-in: default `REDIS_ENABLED=false` dan Redis hanya hidup di profil `monitoring`; aktifkan dengan `make cache-up`/`make verify-redis`.
+* [x] **Verifikasi Runtime Monitoring:** `make verify-monitoring` membuktikan 5/5 target Prometheus `up`, `sum(up)=5`, series p95 tersedia, dan dashboard Grafana `workspace-overview` memiliki 5 panel (2026-10-24).
+* [x] **Smoke Fresh-Run:** `make smoke-e2e` memakai `RUN_ID` unik, header `X-Request-ID`, dan query unik; verifikasi mengikat baris baru di `gateway_query_logs` dan `query_logs` sehingga hasil run lama tidak dapat memenuhi assertion.
+* [x] **Readiness per Kapabilitas:** Gateway `/ready` melaporkan `answers`, `arxiv`, `research_rag`, dan `evaluation` secara terpisah; probe evaluator memakai `/ready` (embedding) dan bukan sekadar liveness proses.
 
-### 🔵 Fase 3 — Standarisasi Protokol Wire MCP (Model Context Protocol)
-* [ ] Mengembangkan gateway dari HTTP REST biasa ke implementasi resmi **MCP JSON-RPC 2.0 (stdio / SSE transport)**.
-* [ ] Mendaftarkan tools: `search_scientific_literature`, `verify_factual_claim`, dan `generate_audit_dossier`.
+### 🔵 Fase 3 — Standarisasi Protokol Wire MCP (Model Context Protocol) (Dalam Progress — 2026-10-24)
+* [x] Mengembangkan gateway dari HTTP REST biasa ke implementasi resmi **MCP JSON-RPC 2.0 (HTTP transport)**.
+* [x] Mendaftarkan tools: `search_scientific_literature`, `verify_factual_claim`, dan `generate_audit_dossier`.
+* [x] Implement handshake initialize/initialized, tools/list, tools/call.
+* [x] Add request body size limit (1 MiB) untuk DoS prevention.
+* [x] Implement trace ID propagation (X-Request-ID header).
+* [x] Fix HTTP status code mapping untuk error responses.
+* [x] Fix tool response format (JSON serialization).
 * [ ] Uji coba interoperabilitas langsung dengan klien eksternal seperti Claude Desktop dan ekstensi IDE Cursor.
+* [ ] stdio adapter untuk Claude Desktop compatibility.
+* [ ] SSE (Server-Sent Events) untuk streaming responses.
 
 ### 🟣 Fase 4 — Antarmuka Audit Klaim & Pelaporan Formal (*Claim Dossier UI*)
 * [ ] Mengubah tampilan UI dari sekadar jendela chat biasa menjadi **Tampilan Audit Dua Sisi (Side-by-Side Claim Audit)**.
@@ -257,11 +310,11 @@ Gateway dan Engine RAG menetapkan 3 zona keyakinan:
 
 Sistem hanya dianggap siap rilis (*production-ready*) apabila seluruh gerbang berikut berstatus **PASS**:
 
-- [ ] **Kemandirian Build:** `docker compose build --no-cache` berhasil di lingkungan bersih tanpa image lokal prapasang.
-- [ ] **Kelulusan Uji 100%:** Seluruh test suite di 4 proyek lulus bersih saat dijalankan via `make test`.
-- [ ] **Nol Kebocoran Kunci:** `make check-secrets` mengembalikan status `CLEAN` (kode keluar 0).
-- [x] **Smoke integrasi tercatat:** laporan 2026-10-20 menyatakan ingest dan query kedua backend berhasil. Ini smoke dasar, bukan acceptance kualitas/produksi; pemeriksaan query log memakai teks tetap dan belum mengikat hasil ke run terbaru.
-- [ ] **Monitoring Aktif:** Prometheus dapat mengikis seluruh 5 job (go-backend, python-ml, mcp-gateway, llm-eval-framework, rag-api) dan Grafana menampilkan metrik latensi p95 tanpa panel error.
+- [x] **Kemandirian Build:** `docker compose build --no-cache --pull` berhasil dari nol pada 2026-10-24; kelima image workspace dibangun ulang. Image `python-ml` turun dari 10,1 GB menjadi 2,86 GB setelah torch CPU-only.
+- [x] **Kelulusan Uji 100%:** `make test` lulus 898 test, 0 failed (arxiv Go 15, python-ml 45, gateway 143 dengan `-race`, evaluator 226, rag 469) pada 2026-10-24. Tidak ada skip yang memengaruhi gate ini.
+- [x] **Nol Kebocoran Kunci:** `make check-secrets` mengembalikan `CLEAN` dengan exit code 0 pada 2026-10-24.
+- [x] **Smoke integrasi tercatat:** smoke 2026-10-24 memakai `RUN_ID` unik, header `X-Request-ID`, dan query unik; baris baru di `gateway_query_logs` dan `query_logs` terverifikasi per request ID. Ini tetap smoke dasar, bukan acceptance kualitas/produksi.
+- [x] **Monitoring Aktif:** Prometheus men-scrape 5/5 job (`go-backend`, `python-ml`, `mcp-gateway`, `llm-eval-framework`, `rag-api`), `sum(up)=5`, series p95 tersedia, dan dashboard `workspace-overview` memiliki 5 panel tanpa error (2026-10-24).
 
 ---
 

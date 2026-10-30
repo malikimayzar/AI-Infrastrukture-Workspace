@@ -64,16 +64,12 @@ services:
     container_name: ws-ollama
     <<: *dns-map
     ports:
-      # Host 11434 is occupied by a host-side Ollama daemon; expose the container on 11435.
-      # In-stack services still use http://ollama:11434 (the compose network alias).
       - "11435:11434"
     volumes:
       - ws-ollama_data:/root/.ollama
     environment:
-      # Keep loaded models warm — a cold phi3:mini load on CPU takes ~2.5 min.
       OLLAMA_KEEP_ALIVE: 30m
     healthcheck:
-      # ollama/ollama ships no curl/wget; probe the port with bash instead.
       test: ["CMD-SHELL", "bash -c '</dev/tcp/127.0.0.1/11434'"]
       interval: 10s
       timeout: 5s
@@ -124,6 +120,8 @@ services:
     <<: *dns-map
     ports:
       - "8001:8001"
+    volumes:
+      - ./rag-research/hf-cache:/app/hf-cache:ro
     environment:
       DB_HOST: postgres
       DB_PORT: 5432
@@ -132,13 +130,8 @@ services:
       DB_NAME: ${POSTGRES_DB:-arxiv_db}
       QDRANT_URL: ${QDRANT_URL:-http://qdrant:6333}
       OLLAMA_HOST: ${OLLAMA_HOST:-http://ollama:11434}
-      # Host RAM (~15GB) tanpa swap: load phi3:mini (~4.5GB peak) OOM ketika
-      # desktop GUI ikut berjalan. Rute Groq dipakai sebagai seksi utama
-      # (kunci valid, ~2-5s); phi3 tetap tersedia untuk demo lokal ketika
-      # host memori longgar — set LLM_PROVIDER=ollama di .env untuk rute lokal.
       LLM_PROVIDER: ${LLM_PROVIDER:-groq}
-      # The full MiniLM snapshot (shared with rag-research) is mounted read-only,
-      # so the embedder never needs outbound DNS.
+      HF_HOME: /app/hf-cache
       HF_HUB_OFFLINE: "1"
       GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
@@ -150,8 +143,6 @@ services:
       ollama:
         condition: service_healthy
     healthcheck:
-      # python:slim ships no curl/wget — use urllib instead. MiniLM downloads from
-      # HF Hub on first boot; give it a generous start period.
       test:
         [
           "CMD",
@@ -188,7 +179,6 @@ services:
       arxiv-python-ml:
         condition: service_healthy
     healthcheck:
-      # wget localhost resolves to ::1 while Fiber binds 0.0.0.0 (IPv4) — use the loopback IPv4 explicitly.
       test: ["CMD", "wget", "-qO-", "http://127.0.0.1:8080/health"]
       interval: 10s
       timeout: 5s
@@ -207,7 +197,6 @@ services:
     ports:
       - "8002:8002"
     volumes:
-      # Keep eval artifacts and checkpoints, which are otherwise lost on rebuild.
       - ./llm-eval-framework/reports:/app/reports
       - ./llm-eval-framework/logs:/app/logs
     environment:
@@ -216,7 +205,6 @@ services:
       ollama:
         condition: service_healthy
     healthcheck:
-      # python:3.11-slim ships no curl/wget — use urllib instead.
       test:
         [
           "CMD",
@@ -280,14 +268,14 @@ services:
       OLLAMA_HOST: ${OLLAMA_HOST:-http://ollama:11434}
       GROQ_MODEL: ${GROQ_MODEL:-openai/gpt-oss-20b}
       GROQ_API_KEY: ${GROQ_API_KEY:-}
+      REDIS_ENABLED: ${REDIS_ENABLED:-false}
+      REDIS_URL: ${REDIS_URL:-redis://redis:6379/0}
     depends_on:
       qdrant:
         condition: service_healthy
       ollama:
         condition: service_healthy
     healthcheck:
-      # Base python-slim ships no curl/wget — probe with urllib. The MiniLM
-      # snapshot is baked into the image, so startup needs no outbound DNS.
       test:
         [
           "CMD",

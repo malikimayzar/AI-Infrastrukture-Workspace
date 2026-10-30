@@ -1,7 +1,7 @@
 # AGENTS.md — AI Agent Guide for AI Infrastructure Workspace
 
 > **Purpose:** Guide for AI agents (Devin, OpenCode, Aider, etc.) working in this workspace.
-> **Last Updated:** 2026-10-24
+> **Last Updated:** 2026-10-29
 > **Workspace:** `ai-infra-workspace` (4 submodules: arxiv-research-assistant, mcp-gateway, rag-research, llm-eval-framework)
 
 ---
@@ -378,28 +378,11 @@ curl http://localhost:8000/health    # rag-api
 
 ## 9. Roadmap Context
 
-### Phase 1 — Workspace Harmonization (COMPLETED ✅)
-- Canonical topology in root docker-compose.yml
-- Key rotation scripts & secret audit
-- Dockerfile cleanup (rag-api: 11.9 GB → 3.89 GB)
-- Test suite alignment
-- Git submodule sync
+> **Source of Truth:** [`docs/ROADMAP.md`](docs/ROADMAP.md) — single consolidated roadmap.
 
-### Phase 2 — Observability & Data Curation (IN PROGRESS 🟡)
-- Prometheus metrics on all services ✅
-- Query leakage cleanup ✅
-- Auto-seed Qdrant ✅
-- Redis cache verification ❌ (pending runtime test)
+**Current Status:** Phase 1–3 selesai (921 test PASS; MCP E2E 16/16 — `docs/ROADMAP.md` = sumber status tunggal). Fase 4 (Claim Audit UI) belum dimulai. Arah produk 2026-10-29: SaaS Dossier-First, MCP sebagai kanal (`docs/business/decision-2026-10-29-dossier-first.md`). Auth + rate limiting aktif. Kalibrasi ECE 0.0576. Rust reranker 1.4x–2.0x. OpenTelemetry (opt-in), circuit breaker, graceful shutdown 30s, rotasi API key, OpenAPI spec, CI/CD, connection pooling, per-key rate limits, dashboard Grafana kustom, 10 rule alerting.
 
-### Phase 3 — MCP Protocol (NOT STARTED 🔵)
-- Implement MCP JSON-RPC 2.0 (stdio/SSE transport)
-- Register tools: `search_scientific_literature`, `verify_factual_claim`, `generate_audit_dossier`
-- Test interoperability with Claude Desktop, Cursor, Devin
-
-### Phase 4 — Claim Audit UI (NOT STARTED 🟣)
-- Side-by-side claim audit interface
-- Export reports (Markdown/PDF)
-- Per-claim attribution & confidence display
+See [`docs/ROADMAP.md`](docs/ROADMAP.md) for full details.
 
 ---
 
@@ -416,7 +399,7 @@ Before claiming production readiness, ensure:
 - [ ] **Dataset Size:** Evaluation dataset ≥ 200 labeled queries
 - [ ] **Latency Verified:** End-to-end P95 ≤ 3.5s measured on deployment hardware
 
-**Current Status:** Phase 1 complete, Phase 2 partially complete (Redis cache pending), Phase 3-4 not started.
+**Current Status:** Phase 1–3 selesai (921 test PASS; MCP E2E 16/16 — `docs/ROADMAP.md` = sumber status tunggal). Fase 4 (Claim Audit UI) belum dimulai. Arah produk 2026-10-29: SaaS Dossier-First, MCP sebagai kanal (`docs/business/decision-2026-10-29-dossier-first.md`). Auth + rate limiting aktif. Kalibrasi ECE 0.0576. Rust reranker 1.4x–2.0x. OpenTelemetry (opt-in), circuit breaker, graceful shutdown 30s, rotasi API key, OpenAPI spec, CI/CD, connection pooling, per-key rate limits, dashboard Grafana kustom, 10 rule alerting.
 
 ---
 

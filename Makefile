@@ -1,4 +1,4 @@
-.PHONY: help up down test test-arxiv test-arxiv-ml test-mcp test-eval test-rag smoke-e2e logs status install-ollama pull-models rotate-key check-secrets prune-builder df monitoring-up monitoring-down seed-rag backup-postgres backup-qdrant backup-all
+.PHONY: help up down test test-arxiv test-arxiv-ml test-mcp test-eval test-rag smoke-e2e logs status status-report install-ollama pull-models rotate-key check-secrets prune-builder df monitoring-up monitoring-down cache-up verify-redis verify-monitoring seed-rag backup-postgres backup-qdrant backup-all mcp-stdio-up mcp-stdio-down
 
 # Workspace root Makefile for the AI Infrastructure Platform
 #
@@ -49,11 +49,30 @@ logs:  ## Follow logs (service name optional, e.g. make logs SERVICE=arxiv-go-ba
 status:  ## Show service status
 	$(COMPOSE) --env-file $(ENV_FILE) ps
 
+status-report:  ## Generate STATUS.md from executed checks
+	bash scripts/generate_status.sh
+
 monitoring-up:  ## Start monitoring only (redis, prometheus, grafana)
 	$(COMPOSE) --env-file $(ENV_FILE) --profile monitoring up -d redis prometheus grafana
 
 monitoring-down:  ## Stop monitoring only (core stack tetap jalan)
 	$(COMPOSE) --env-file $(ENV_FILE) --profile monitoring stop redis prometheus grafana
+
+cache-up:  ## Start Redis and recreate rag-api with response cache enabled
+	$(COMPOSE) --env-file $(ENV_FILE) --profile monitoring up -d redis
+	REDIS_ENABLED=true $(COMPOSE) --env-file $(ENV_FILE) up -d --no-deps --force-recreate rag-api
+
+verify-redis: cache-up  ## Verify Redis cache hit path end-to-end
+	bash scripts/verify_redis_cache.sh
+
+verify-monitoring:  ## Verify Prometheus targets, p95 data, and Grafana dashboard
+	bash scripts/verify_monitoring.sh
+
+mcp-stdio-up:  ## Start MCP stdio adapter for Claude Desktop compatibility
+	$(COMPOSE) --env-file $(ENV_FILE) --profile mcp-stdio up -d mcp-stdio-adapter
+
+mcp-stdio-down:  ## Stop MCP stdio adapter
+	$(COMPOSE) --env-file $(ENV_FILE) --profile mcp-stdio stop mcp-stdio-adapter
 
 # ──────────────────────────────────────────────────────────────────────
 # Tests (each project)
@@ -93,6 +112,9 @@ pull-models:  ## Pull required Ollama models (inside the ws-ollama container, no
 # ──────────────────────────────────────────────────────────────────────
 
 smoke-e2e:  ## Run end-to-end smoke test (ingest → query → evaluate)
+	bash scripts/smoke_e2e.sh
+
+smoke-reports:  ## Run reports-focused smoke test (POST /reports → export.md → /r/{token} → audit_reports row)
 	bash scripts/smoke_e2e.sh
 
 # ──────────────────────────────────────────────────────────────────────
@@ -142,3 +164,8 @@ arxiv-up:  ## Start arxiv stack only
 
 arxiv-down:  ## Stop arxiv stack only
 	cd arxiv-research-assistant && $(MAKE) down
+
+verify:  ## Run status + tests + secret scan
+	make status
+	make test
+	make check-secrets

@@ -1,20 +1,3 @@
-#!/usr/bin/env bash
-# scripts/rotate_key.sh — safe Groq API-key rotation for this workspace.
-#
-# Alur (dilengkapi langsung dari TODO P0):
-#   1. Validasi kunci SECARA LANGSUNG ke Groq (list models) — kunci buruk tidak pernah
-#      menyentuh .env.
-#   2. Tulis ulang `GROQ_API_KEY=` di .env (tanpa kutip; idempotent).
-#   3. Recreate HANYA tiga service yang mengkonsumsi kunci (mcp-gateway, rag-api,
-#      arxiv-python-ml) — infrastruktur (postgres/qdrant/ollama/…) tidak diganggu.
-#   4. Konfirmasi per-container dengan prefix yang di-mask.
-#
-# Pemakaian:
-#   KEY=gsk_xxx make rotate-key          # rotasi penuh
-#   KEY=gsk_xxx make rotate-key DRY=1    # validasi sahaja, .env tidak diubah
-#
-# Satu-satunya tempat kunci adalah .env (root) — gitignored sengaja, tidak di-commit.
-# File *.env.example hanya boleh memuat placeholder (dipaksa scripts/check_secrets.sh).
 set -euo pipefail
 
 KEY="${KEY:-}"

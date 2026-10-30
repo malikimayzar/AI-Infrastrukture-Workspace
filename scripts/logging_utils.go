@@ -1,11 +1,3 @@
-// Package logging provides structured JSON logging utilities for Go services
-//
-// Usage:
-//   logger := logging.NewLogger("mcp-gateway", logging.INFO)
-//   logger.Info("Processing request", logging.Fields{
-//       "request_id": "123",
-//       "backend": "research_rag",
-//   })
 package logging
 
 import (

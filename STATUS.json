@@ -1,0 +1,300 @@
+{
+  "meta": {
+    "generated_at": "2026-10-26T02:39:51+07:00",
+    "commit": "1d39765",
+    "branch": "remediation/2026-10-24",
+    "working_tree": "24 perubahan",
+    "generator": "scripts/generate_status.sh"
+  },
+  "counts": {
+    "PASS": 29,
+    "WARN": 7,
+    "FAIL": 6,
+    "SKIP": 1,
+    "INFO": 4
+  },
+  "rows": [
+    {
+      "section": "Repository",
+      "check": "Release tags",
+      "status": "WARN",
+      "evidence": "0 tag — hasil tidak dapat direproduksi dari rilis"
+    },
+    {
+      "section": "Repository",
+      "check": "Default branch",
+      "status": "INFO",
+      "evidence": "master"
+    },
+    {
+      "section": "Repository",
+      "check": "CI trigger cocok dengan default branch",
+      "status": "FAIL",
+      "evidence": "CI: branches: [main]  | default: master"
+    },
+    {
+      "section": "Repository",
+      "check": "Submodule sinkron",
+      "status": "PASS",
+      "evidence": "4 submodule"
+    },
+    {
+      "section": "Build & Tests",
+      "check": "arxiv Go — collected",
+      "status": "PASS",
+      "evidence": "15 test"
+    },
+    {
+      "section": "Build & Tests",
+      "check": "mcp-gateway — collected",
+      "status": "PASS",
+      "evidence": "156 test"
+    },
+    {
+      "section": "Build & Tests",
+      "check": "arxiv python-ml — collected",
+      "status": "PASS",
+      "evidence": "45 test"
+    },
+    {
+      "section": "Build & Tests",
+      "check": "llm-eval — collected",
+      "status": "PASS",
+      "evidence": "228 test"
+    },
+    {
+      "section": "Build & Tests",
+      "check": "rag-research — collected",
+      "status": "PASS",
+      "evidence": "482 test"
+    },
+    {
+      "section": "Build & Tests",
+      "check": "Test suite penuh",
+      "status": "SKIP",
+      "evidence": "jalankan dengan --full untuk mengeksekusi"
+    },
+    {
+      "section": "Runtime",
+      "check": "Compose valid",
+      "status": "PASS",
+      "evidence": "8 core; 12 dengan profile"
+    },
+    {
+      "section": "Runtime",
+      "check": "mcp-gateway",
+      "status": "PASS",
+      "evidence": "http://localhost:8090/health"
+    },
+    {
+      "section": "Runtime",
+      "check": "arxiv-go-backend",
+      "status": "PASS",
+      "evidence": "http://localhost:8080/health"
+    },
+    {
+      "section": "Runtime",
+      "check": "arxiv-python-ml",
+      "status": "PASS",
+      "evidence": "http://localhost:8001/health"
+    },
+    {
+      "section": "Runtime",
+      "check": "llm-eval-framework",
+      "status": "PASS",
+      "evidence": "http://localhost:8002/health"
+    },
+    {
+      "section": "Runtime",
+      "check": "rag-api",
+      "status": "PASS",
+      "evidence": "http://localhost:8000/health"
+    },
+    {
+      "section": "Calibration",
+      "check": "Model file",
+      "status": "PASS",
+      "evidence": "calibration_isotonic.joblib (17689 bytes)"
+    },
+    {
+      "section": "Calibration",
+      "check": "Model dapat dimuat",
+      "status": "PASS",
+      "evidence": "method=isotonic fitted=True samples=194"
+    },
+    {
+      "section": "Calibration",
+      "check": "Image menyediakan models/",
+      "status": "PASS",
+      "evidence": "model di-fit saat build (fit_calibration.py)"
+    },
+    {
+      "section": "Calibration",
+      "check": "Compose punya env kalibrasi",
+      "status": "PASS",
+      "evidence": "CALIBRATION_METHOD CALIBRATION_MODEL_PATH "
+    },
+    {
+      "section": "Calibration",
+      "check": ".env.example punya variabel kalibrasi",
+      "status": "PASS",
+      "evidence": "CALIBRATION_METHOD CALIBRATION_MODEL_PATH "
+    },
+    {
+      "section": "Calibration",
+      "check": "Model vs dataset",
+      "status": "PASS",
+      "evidence": "194 sampel = 194 baris dataset"
+    },
+    {
+      "section": "Calibration",
+      "check": "Container punya model",
+      "status": "PASS",
+      "evidence": "/app/models/calibration_isotonic.joblib ada"
+    },
+    {
+      "section": "Calibration",
+      "check": "Container memuat model",
+      "status": "PASS",
+      "evidence": "log startup: Calibration model loaded"
+    },
+    {
+      "section": "Datasets",
+      "check": "Rows",
+      "status": "INFO",
+      "evidence": "194 baris (declared 194)"
+    },
+    {
+      "section": "Datasets",
+      "check": "Jumlah baris cocok",
+      "status": "PASS",
+      "evidence": "194 = declared 194"
+    },
+    {
+      "section": "Datasets",
+      "check": "Baris dikeluarkan",
+      "status": "PASS",
+      "evidence": "6 baris dikeluarkan dari fitting"
+    },
+    {
+      "section": "Datasets",
+      "check": "Label is_supported",
+      "status": "PASS",
+      "evidence": "194/194 berlabel"
+    },
+    {
+      "section": "Datasets",
+      "check": "Unique queries",
+      "status": "WARN",
+      "evidence": "137 unik, 57 duplikat, 0 konflik label (bias kalibrasi)"
+    },
+    {
+      "section": "Datasets",
+      "check": "Baris ERROR",
+      "status": "PASS",
+      "evidence": "0"
+    },
+    {
+      "section": "Datasets",
+      "check": "Probe negatif off-domain",
+      "status": "PASS",
+      "evidence": "21 probe, semuanya is_supported=false (disengaja)"
+    },
+    {
+      "section": "Datasets",
+      "check": "ground_truth (opsional)",
+      "status": "INFO",
+      "evidence": "13/194 baris punya teks referensi; label utama = is_supported"
+    },
+    {
+      "section": "MCP",
+      "check": "HTTP handler",
+      "status": "PASS",
+      "evidence": "internal/mcp/handler.go ada"
+    },
+    {
+      "section": "MCP",
+      "check": "stdio adapter",
+      "status": "WARN",
+      "evidence": "ada di working tree tetapi belum tracked"
+    },
+    {
+      "section": "MCP",
+      "check": "Konsistensi dokumen",
+      "status": "FAIL",
+      "evidence": "README bilang belum, integration guide bilang sudah"
+    },
+    {
+      "section": "MCP",
+      "check": "SSE (kode)",
+      "status": "WARN",
+      "evidence": "kode ada; perilaku streaming belum diverifikasi"
+    },
+    {
+      "section": "Security",
+      "check": "Secret scan",
+      "status": "PASS",
+      "evidence": "scripts/check_secrets.sh bersih"
+    },
+    {
+      "section": "Security",
+      "check": ".env di-gitignore",
+      "status": "PASS",
+      "evidence": ".env tidak akan ter-commit"
+    },
+    {
+      "section": "Security",
+      "check": "Groq key revocation",
+      "status": "FAIL",
+      "evidence": "dokumen insiden masih menyatakan revocation pending"
+    },
+    {
+      "section": "Security",
+      "check": "Binary tracked",
+      "status": "FAIL",
+      "evidence": "tracked: server=19MB"
+    },
+    {
+      "section": "Security",
+      "check": "Binary untracked",
+      "status": "WARN",
+      "evidence": "server_new=19MB, tidak di-ignore"
+    },
+    {
+      "section": "Documentation",
+      "check": "Jumlah file .md",
+      "status": "INFO",
+      "evidence": "195"
+    },
+    {
+      "section": "Documentation",
+      "check": "Link internal rusak",
+      "status": "WARN",
+      "evidence": "2 link; contoh: README.md -> docs/ARCHITECTURE.md; mcp-gateway/docs/workspace-alignment.md -> ../WORKSPACE_DIRECTION.md"
+    },
+    {
+      "section": "Documentation",
+      "check": "README -> docs/ARCHITECTURE.md",
+      "status": "FAIL",
+      "evidence": "dirujuk tetapi file tidak ada"
+    },
+    {
+      "section": "Documentation",
+      "check": "Dokumen status ganda",
+      "status": "WARN",
+      "evidence": "PROJECT_CONTEXT.md, docs/ROADMAP.md, docs/IMPLEMENTATION_STATUS.md, STATUS.md"
+    },
+    {
+      "section": "Quality Gates",
+      "check": "Phase 1 smoke (v3)",
+      "status": "FAIL",
+      "evidence": "phase1_smoke_v3_20261024T164559.452903Z.json phase1_pass=False human_review_complete=False"
+    },
+    {
+      "section": "Quality Gates",
+      "check": "Laporan kalibrasi",
+      "status": "PASS",
+      "evidence": "models/calibration_report.json n=194 (isotonic, platt)"
+    }
+  ]
+}

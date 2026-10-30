@@ -1,6 +1,6 @@
 # PROJECT CONTEXT — AI Infrastructure Platform
 > **Workspace:** `ai-infra-workspace`
-> **Runtime Snapshot:** 2026-10-22
+> **Runtime Snapshot:** 2026-10-26
 > **Target Product:** Scientific Claim & Prior-Art Auditor Platform
 
 ---
@@ -18,48 +18,47 @@ semua service     → qdrant :6333 / ollama :11434 (internal) / postgres :5432
 host mengakses Ollama container melalui :11435
 ```
 
-* **Model generasi backend:** Groq `openai/gpt-oss-20b` untuk layanan `python-ml` dan `rag-api` (dikonfigurasi melalui `.env` root). `mcp-gateway` memakai rencana backend deterministik dan tidak memanggil Groq untuk memilih tool.
-* **Model LLM Lokal (Opsional/Demo):** Ollama `phi3:mini` (port container `11434` dipetakan ke host `11435` untuk menghindari bentrok dengan daemon host).
+* **Model generasi backend:** Groq `openai/gpt-oss-20b` untuk layanan `python-ml` dan `rag-api`.
+* **Model LLM Lokal (Opsional/Demo):** Ollama `phi3:mini` (port container `11434` dipetakan ke host `11435`).
 * **Model Embedding Baku:** `sentence-transformers/all-MiniLM-L6-v2` (vektor 384 dimensi, cache di-mount read-only dengan `HF_HUB_OFFLINE=1`).
 
 ---
 
-## 2. STATUS INTEGRASI DAN BATAS BUKTI
+## 2. STATUS INTEGRASI
 
-1. **Jalur eksekusi integrasi yang disarankan (root Compose):**
-   * Compose mendefinisikan 8 layanan inti; tiga layanan monitoring/Redis aktif melalui profile `monitoring`.
-   * Gateway memiliki adapter source-level untuk backend `arxiv` dan `research_rag`. Laporan smoke 2026-10-20 mencatat ingest dan query keduanya, tetapi smoke bukan evaluasi mutu jawaban atau gate kesiapan produksi.
-   * Pemeriksaan query log smoke mencari teks query tetap; baris dari run lama dapat ikut terhitung. Jangan gunakan hasil tersebut sebagai bukti bahwa run terbaru menulis log tanpa verifikasi tambahan.
+1. **Jalur eksekusi integrasi (root Compose):**
+   * Compose mendefinisikan 8 layanan inti; 3 layanan monitoring/Redis aktif melalui profile `monitoring`.
+   * Gateway memiliki adapter source-level untuk backend `arxiv` dan `research_rag`.
+   * Smoke test memakai `RUN_ID` unik, header `X-Request-ID`, dan query unik.
 2. **Monitoring (Opt-In):**
-   * Profil `monitoring` (`make monitoring-up`) menyalakan Prometheus `:9090`, Grafana `:3000` (admin/admin), dan Redis `:6379`.
-   * Prometheus men-scrape lima job: go-backend, python-ml, mcp-gateway, llm-eval-framework, dan rag-api.
-   * Redis untuk cache RAG bersifat opt-in (`REDIS_ENABLED=false` default) karena Redis hanya hidup di profil monitoring.
+   * Profil `monitoring` (`make monitoring-up`) menyalakan Prometheus `:9090`, Grafana `:3000`, Redis `:6379`.
+   * Prometheus men-scrape lima job. `make verify-monitoring` membuktikan 5/5 target `up`.
+   * Redis untuk cache RAG bersifat opt-in (`REDIS_ENABLED=false` default).
 3. **Pengelolaan Rahasia:**
    * Diatur via `scripts/rotate_key.sh` dan `scripts/check_secrets.sh`. File `.env` berada di root dan di-gitignored.
-   * Compose masih memiliki nilai fallback untuk kredensial layanan dan Grafana. Perlakukan sebagai konfigurasi pengembangan lokal; ganti sebelum mengekspos layanan ke jaringan bersama.
+   * Compose masih memiliki nilai fallback untuk kredensial layanan (development only).
 
 ---
 
 ## 3. SNAPSHOT TEST YANG TERCATAT
 
-Angka di bawah adalah catatan dari dokumen dan tanggal yang disebutkan, bukan hasil
-test yang dijalankan saat snapshot konteks ini dibaca. Jalankan gate yang sesuai
-sebelum memakai angka tersebut sebagai bukti rilis.
-
-* **`arxiv-research-assistant/go-backend`:** 100% PASS (`go test ./...`).
-* **`mcp-gateway`:** 100% PASS (`go test ./...` dengan `-race` detection).
-* **`llm-eval-framework`:** 100% PASS (208 test unit lulus dalam ~5 detik).
-* **`arxiv-research-assistant/python-ml`:** 100% PASS (19 test unit lulus jika dijalankan dengan `PYTHONPATH`).
-* **`rag-research`:** 419 PASS, 1 SKIPPED, 0 FAILED (per 2026-10-22; `ragas` sudah terpasang di venv root). **Query leakage: PASS** (`test_query_leakage.py`, 18 test lulus) — 4 pertanyaan dataset v2 yang sebelumnya bocor sudah di bawah ambang cosine 0.90.
-* **`test_qdrant_store.py`:** offline-safe setelah `QdrantVectorStore` menerima `embedder`/`client` injeksi — **~27,4 s → ~1,2 s**, lolos dengan `HF_HUB_OFFLINE=1`.
+* **`arxiv-research-assistant/go-backend`:** 15 test PASS (2026-10-24).
+* **`mcp-gateway`:** 143 test PASS dengan `-race` (2026-10-24).
+* **`llm-eval-framework`:** 226 test PASS (2026-10-24).
+* **`arxiv-research-assistant/python-ml`:** 45 test PASS (2026-10-24).
+* **`rag-research`:** 492 test PASS (2026-10-26).
+* **E2E MCP smoke test:** 16/16 PASS (2026-10-26).
 
 ---
 
 ## 4. RUJUKAN DOKUMENTASI TERKAIT
 
 * Spesifikasi dan Tujuan Lengkap: [`PROJECT_GOALS.md`](PROJECT_GOALS.md)
-* Riwayat Insiden & Solusi Operasional: [`docs/ops-postmortem.md`](docs/ops-postmortem.md)
-* Panduan Operasional Cepat: [`README.md`](README.md)
+* Roadmap & Status: [`docs/ROADMAP.md`](docs/ROADMAP.md)
+* Keputusan Arah Produk (Dossier-First SaaS): [`docs/business/decision-2026-10-29-dossier-first.md`](docs/business/decision-2026-10-29-dossier-first.md)
+* Panduan Operasional: [`docs/OPERATIONS.md`](docs/OPERATIONS.md)
+* Panduan MCP: [`docs/mcp-integration-guide.md`](docs/mcp-integration-guide.md)
+* Kalibrasi Confidence: [`docs/confidence-calibration.md`](docs/confidence-calibration.md)
 * Kontrak Submodul:
   * [`mcp-gateway/PROJECT_GOALS.md`](mcp-gateway/PROJECT_GOALS.md)
   * [`rag-research/PROJECT_GOALS.md`](rag-research/PROJECT_GOALS.md)

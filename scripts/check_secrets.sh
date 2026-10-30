@@ -1,6 +1,3 @@
-#!/usr/bin/env bash
-# Scan tracked files in the workspace and its submodules for credential leaks.
-# Untracked local .env files are intentionally excluded.
 set -euo pipefail
 
 repos=(. arxiv-research-assistant mcp-gateway rag-research llm-eval-framework)

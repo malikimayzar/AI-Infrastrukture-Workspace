@@ -1,14 +1,3 @@
-#!/bin/bash
-# Backup PostgreSQL database from ws-postgres container
-#
-# Usage:
-#   ./scripts/backup_postgres.sh [--local] [--s3]
-#   --local: Save to local backup directory (default: ./backups/postgres/)
-#   --s3: Upload to S3 (requires AWS credentials)
-#
-# Cron example (daily at 2 AM):
-#   0 2 * * * cd /path/to/ai-infra-workspace && ./scripts/backup_postgres.sh >> /var/log/postgres-backup.log 2>&1
-
 set -e
 
 # Configuration

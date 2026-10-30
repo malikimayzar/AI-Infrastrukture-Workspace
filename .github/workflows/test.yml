@@ -1,0 +1,107 @@
+name: CI
+
+on:
+  push:
+    branches: [main, master, remediation/2026-10-24, "remediation/**"]
+  pull_request:
+    branches: [main, master, remediation/2026-10-24, "remediation/**"]
+
+jobs:
+  test-mcp-gateway:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.22'
+      - name: Run tests
+        run: |
+          cd mcp-gateway
+          go test ./... -race -count=1
+      - name: Build
+        run: |
+          cd mcp-gateway
+          go build ./...
+
+  test-arxiv-go:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-go@v5
+        with:
+          go-version: '1.25'
+      - name: Run tests
+        run: |
+          cd arxiv-research-assistant/go-backend
+          go test ./... -v
+
+  test-arxiv-ml:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          cd arxiv-research-assistant/python-ml
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          cd arxiv-research-assistant/python-ml
+          PYTHONPATH=. pytest tests/ -v
+
+  test-llm-eval:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Install dependencies
+        run: |
+          cd llm-eval-framework
+          pip install -r requirements.txt
+      - name: Run tests
+        run: |
+          cd llm-eval-framework
+          python -m pytest tests/ -v
+
+  test-rag-research:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          submodules: recursive
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install dependencies
+        run: |
+          cd rag-research
+          pip install -r requirements.txt
+          # Build Rust extension (optional, tests skip if missing)
+          if command -v cargo &> /dev/null; then
+            cd src/ingestion/semantic_chunker_rust && maturin develop --release 2>/dev/null || true
+            cd ../../..
+          fi
+      - name: Run tests
+        run: |
+          cd rag-research
+          python -m pytest tests/ -q --tb=short
+
+  check-secrets:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for leaked secrets
+        run: |
+          bash scripts/check_secrets.sh
